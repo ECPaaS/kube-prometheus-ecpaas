@@ -1,9 +1,10 @@
 local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
 local kp =
   (import 'kube-prometheus/kube-prometheus.libsonnet') +
-  (import 'kube-prometheus/kube-prometheus-anti-affinity.libsonnet') +
-  (import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
-  (import 'kube-prometheus/kube-prometheus-strip-limits.libsonnet')
+//(import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
+//(import 'kube-prometheus/ksm-autoscaler/ksm-autoscaler.libsonnet') +
+  (import 'kube-prometheus/kube-prometheus-strip-limits.libsonnet') +
+  (import 'kube-prometheus/kube-prometheus-anti-affinity.libsonnet')
   {
     _config+:: {
       namespace: 'kubesphere-monitoring-system',
@@ -11,10 +12,10 @@ local kp =
       versions+:: {
         prometheus: "v2.11.0",
         alertmanager: "v0.18.0",
-        kubeStateMetrics: "v1.5.2", // v1.7.2
+        kubeStateMetrics: "v1.8.0",
         kubeRbacProxy: "v0.4.1",
         addonResizer: "1.8.4",
-        nodeExporter: "ks-v0.16.0", // v0.18.1
+        nodeExporter: "v0.18.1", 
         prometheusOperator: 'v0.33.0',
         configmapReloader: 'v0.0.1',
         prometheusConfigReloader: 'v0.33.0',
@@ -24,25 +25,25 @@ local kp =
       },
 
       imageRepos+:: {
-        prometheus: "dockerhub.qingcloud.com/prometheus/prometheus",
-        alertmanager: "dockerhub.qingcloud.com/prometheus/alertmanager",
-        kubeStateMetrics: "dockerhub.qingcloud.com/coreos/kube-state-metrics",
-        kubeRbacProxy: "dockerhub.qingcloud.com/coreos/kube-rbac-proxy",
-        addonResizer: "dockerhub.qingcloud.com/coreos/addon-resizer",
-        nodeExporter: "dockerhub.qingcloud.com/prometheus/node-exporter",
-        prometheusOperator: "dockerhub.qingcloud.com/coreos/prometheus-operator",
-        configmapReloader: 'dockerhub.qingcloud.com/coreos/configmap-reload',
-        prometheusConfigReloader: 'dockerhub.qingcloud.com/coreos/prometheus-config-reloader',
-        prometheusAdapter: 'dockerhub.qingcloud.com/coreos/k8s-prometheus-adapter-amd64',
-        thanos: 'dockerhub.qingcloud.com/thanos/thanos',
+        prometheus: "kubesphere/prometheus",
+        alertmanager: "kubesphere/alertmanager",
+        kubeStateMetrics: "kubesphere/kube-state-metrics",
+        kubeRbacProxy: "kubesphere/kube-rbac-proxy",
+        addonResizer: "kubesphere/addon-resizer",
+        nodeExporter: "kubesphere/node-exporter",
+        prometheusOperator: "kubesphere/prometheus-operator",
+        configmapReloader: 'kubesphere/configmap-reload',
+        prometheusConfigReloader: 'kubesphere/prometheus-config-reloader',
+        prometheusAdapter: 'kubesphere/k8s-prometheus-adapter-amd64',
+        thanos: 'kubesphere/thanos',
         clusterVerticalAutoscaler: 'gcr.io/google_containers/cluster-proportional-vertical-autoscaler-amd64'
       },
 
       prometheus+:: {
         retention: '7d',
         scrapeInterval: '1m',
-        namespaces: ['default', 'kube-system', 'istio-system', $._config.namespace],
-        serviceMonitorSelector: {matchExpressions: [{key: 'k8s-app', operator: 'In', values: ['kube-state-metrics', 'node-exporter', 'kubelet', 'prometheus', 'etcd', 'coredns', 'apiserver', 'kube-scheduler', 'kube-controller-manager']}]},
+        namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
+        serviceMonitorSelector: {matchExpressions: [{key: 'k8s-app', operator: 'In', values: ['kube-state-metrics', 'node-exporter', 'kubelet', 'prometheus', 'etcd', 'coredns', 'apiserver', 'kube-scheduler', 'kube-controller-manager', 's2i-operator']}]},
         storage: {
           volumeClaimTemplate: {
             spec: {
@@ -64,20 +65,20 @@ local kp =
             value: 'monitoring',
             effect: 'NoSchedule',
           },
-        ]
+        ],
       },
 
       kubeStateMetrics+:: {
         scrapeInterval: '1m',
       },
 
-      etcd+:: {
-        ips: ['127.0.0.1'],
-        clientCA: importstr 'etcd-client-ca.crt',
-        clientKey: importstr 'etcd-client.key',
-        clientCert: importstr 'etcd-client.crt',
-        serverName: 'etcd.kube-system.svc.cluster.local',
-      },
+//      etcd+:: {
+//        ips: ['127.0.0.1'],
+//        clientCA: importstr 'etcd-client-ca.crt',
+//        clientKey: importstr 'etcd-client.key',
+//        clientCert: importstr 'etcd-client.crt',
+//        serverName: 'etcd.kube-system.svc.cluster.local',
+//      },
     },
 
     alertmanager+:: {
@@ -107,8 +108,63 @@ local kp =
           },
         },      
     }, 
-
     kubeStateMetrics+:: {
+      deployment:
+        local deployment = k.apps.v1.deployment;
+        local container = deployment.mixin.spec.template.spec.containersType;
+        local volume = deployment.mixin.spec.template.spec.volumesType;
+        local containerPort = container.portsType;
+        local containerVolumeMount = container.volumeMountsType;
+        local podSelector = deployment.mixin.spec.template.spec.selectorType;
+  
+        local podLabels = { app: 'kube-state-metrics' };
+  
+        local proxyClusterMetrics =
+          container.new('kube-rbac-proxy-main', $._config.imageRepos.kubeRbacProxy + ':' + $._config.versions.kubeRbacProxy) +
+          container.withArgs([
+            '--logtostderr',
+            '--secure-listen-address=:8443',
+            '--tls-cipher-suites=' + std.join(',', $._config.tlsCipherSuites),
+            '--upstream=http://127.0.0.1:8081/',
+          ]) +
+          container.withPorts(containerPort.newNamed(8443, 'https-main',)) +
+          container.mixin.resources.withRequests($._config.resources['kube-rbac-proxy'].requests) +
+          container.mixin.resources.withLimits($._config.resources['kube-rbac-proxy'].limits);
+  
+        local proxySelfMetrics =
+          container.new('kube-rbac-proxy-self', $._config.imageRepos.kubeRbacProxy + ':' + $._config.versions.kubeRbacProxy) +
+          container.withArgs([
+            '--logtostderr',
+            '--secure-listen-address=:9443',
+            '--tls-cipher-suites=' + std.join(',', $._config.tlsCipherSuites),
+            '--upstream=http://127.0.0.1:8082/',
+          ]) +
+          container.withPorts(containerPort.newNamed(9443, 'https-self',)) +
+          container.mixin.resources.withRequests($._config.resources['kube-rbac-proxy'].requests) +
+          container.mixin.resources.withLimits($._config.resources['kube-rbac-proxy'].limits);
+  
+        local kubeStateMetrics =
+          container.new('kube-state-metrics', $._config.imageRepos.kubeStateMetrics + ':' + $._config.versions.kubeStateMetrics) +
+          container.withArgs([
+            '--host=127.0.0.1',
+            '--port=8081',
+            '--telemetry-host=127.0.0.1',
+            '--telemetry-port=8082',
+          ] + if $._config.kubeStateMetrics.collectors != '' then ['--collectors=' + $._config.kubeStateMetrics.collectors] else []) +
+          container.mixin.resources.withRequests({ cpu: $._config.kubeStateMetrics.baseCPU, memory: $._config.kubeStateMetrics.baseMemory }) +
+          container.mixin.resources.withLimits({});
+  
+        local c = [proxyClusterMetrics, proxySelfMetrics, kubeStateMetrics];
+  
+        deployment.new('kube-state-metrics', 1, c, podLabels) +
+        deployment.mixin.metadata.withNamespace($._config.namespace) +
+        deployment.mixin.metadata.withLabels(podLabels) +
+        deployment.mixin.spec.selector.withMatchLabels(podLabels) +
+        deployment.mixin.spec.template.spec.withNodeSelector({ 'kubernetes.io/os': 'linux' }) +
+        deployment.mixin.spec.template.spec.securityContext.withRunAsNonRoot(true) +
+        deployment.mixin.spec.template.spec.securityContext.withRunAsUser(65534) +
+        deployment.mixin.spec.template.spec.withServiceAccountName('kube-state-metrics'),
+
       serviceMonitor+:
         {
           spec+: {
@@ -164,6 +220,10 @@ local kp =
                 bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
                 relabelings: [
                   {
+                    regex: '(service|endpoint)',
+                    action: 'labeldrop',
+                  },
+                  {
                     action: 'replace',
                     regex: '(.*)',
                     replacement: '$1',
@@ -188,6 +248,36 @@ local kp =
     }, 
 
     prometheus+:: {
+      roleSpecificNamespaces:
+        {
+        },
+      roleBindingSpecificNamespaces:
+        {
+        },
+      clusterRole:
+        local clusterRole = k.rbac.v1.clusterRole;
+        local policyRule = clusterRole.rulesType;
+  
+        local nodeMetricsRule = policyRule.new() +
+                                policyRule.withApiGroups(['']) +
+                                policyRule.withResources([
+                                  'nodes/metrics',
+                                  'nodes',
+                                  'services',
+                                  'endpoints',
+                                  'pods',
+                                ]) +
+                                policyRule.withVerbs(['get', 'list', 'watch']);
+  
+        local metricsRule = policyRule.new() +
+                            policyRule.withNonResourceUrls('/metrics') +
+                            policyRule.withVerbs(['get']);
+  
+        local rules = [nodeMetricsRule, metricsRule];
+  
+        clusterRole.new() +
+        clusterRole.mixin.metadata.withName('prometheus-' + self.name) +
+        clusterRole.withRules(rules),
       prometheus+:
         local statefulSet = k.apps.v1.statefulSet;
         local toleration = statefulSet.mixin.spec.template.spec.tolerationsType;
@@ -207,7 +297,8 @@ local kp =
             scrapeInterval: $._config.prometheus.scrapeInterval,
             storage: $._config.prometheus.storage,
             query: $._config.prometheus.query,
-            secrets: ['kube-etcd-client-certs'],
+            //secrets: ['kube-etcd-client-certs'],
+            serviceMonitorSelector: $._config.prometheus.serviceMonitorSelector,
             securityContext: {
               runAsUser: 0,
               runAsNonRoot: false,
@@ -226,37 +317,43 @@ local kp =
               {
                 port: 'web',
                 interval: '1m',
+                relabelings: [
+                  {
+                    regex: '(service|endpoint)',
+                    action: 'labeldrop',
+                  },
+                ],
               },
             ],
           },
         },
-      serviceMonitorEtcd+:
-        {
-          metadata+: {
-            namespace: 'kubesphere-monitoring-system',
-          },
-          spec+: {
-            endpoints: [
-              {
-                port: 'metrics',
-                interval: '1m',
-                scheme: 'https',
-                // Prometheus Operator (and Prometheus) allow us to specify a tlsConfig. This is required as most likely your etcd metrics end points is secure.
-                tlsConfig: {
-                  caFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client-ca.crt',
-                  keyFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.key',
-                  certFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.crt',
-                  [if $._config.etcd.serverName != null then 'serverName']: $._config.etcd.serverName,
-                  [if $._config.etcd.insecureSkipVerify != null then 'insecureSkipVerify']: $._config.etcd.insecureSkipVerify,
-                },
-              },
-            ],
-          },
-        },
-      secretEtcdCerts: 
-        {
-
-        },
+//      serviceMonitorEtcd+:
+//        {
+//          metadata+: {
+//            namespace: 'kubesphere-monitoring-system',
+//          },
+//          spec+: {
+//            endpoints: [
+//              {
+//                port: 'metrics',
+//                interval: '1m',
+//                scheme: 'https',
+//                // Prometheus Operator (and Prometheus) allow us to specify a tlsConfig. This is required as most likely your etcd metrics end points is secure.
+//                tlsConfig: {
+//                  caFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client-ca.crt',
+//                  keyFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.key',
+//                  certFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.crt',
+//                  [if $._config.etcd.serverName != null then 'serverName']: $._config.etcd.serverName,
+//                  [if $._config.etcd.insecureSkipVerify != null then 'insecureSkipVerify']: $._config.etcd.insecureSkipVerify,
+//                },
+//              },
+//            ],
+//          },
+//        },
+//      secretEtcdCerts: 
+//        {
+//
+//        },
       serviceMonitorKubeScheduler+:
         {
           spec+: {
@@ -281,6 +378,12 @@ local kp =
                   insecureSkipVerify: true,
                 },
                 bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+                relabelings: [
+                  {
+                    regex: '(service|endpoint)',
+                    action: 'labeldrop',
+                  },
+                ],
                 metricRelabelings: [
                   // Drop unused metrics
                   {
@@ -300,6 +403,12 @@ local kp =
                   insecureSkipVerify: true,
                 },
                 bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+                relabelings: [
+                  {
+                    regex: '(service|endpoint)',
+                    action: 'labeldrop',
+                  },
+                ],
                 metricRelabelings: [
                   {
                     sourceLabels: ['__name__'],
@@ -380,12 +489,52 @@ local kp =
             ],
           },
         },    
+      serviceMonitorS2IOperator+:
+        {
+          apiVersion: 'monitoring.coreos.com/v1',
+          kind: 'ServiceMonitor',
+          metadata: {
+            name: 's2i-operator',
+            namespace: $._config.namespace,
+            labels: {
+              'k8s-app': 's2i-operator',
+            },
+          },
+          spec: {
+            jobLabel: 'k8s-app',
+            selector: {
+              matchLabels: {
+                'control-plane': 's2i-controller-manager',
+                'app': 's2i-metrics',
+              },
+            },
+            namespaceSelector: {
+              matchNames: [
+                'kubesphere-devops-system',
+              ],
+            },
+            endpoints: [
+              {
+                port: 'http',
+                interval: '1m',
+                honorLabels: true,
+                metricRelabelings: [
+                  {
+                    sourceLabels: ['__name__'],
+                    regex: 's2i_s2ibuilder_created',
+                    action: 'keep',
+                  },
+                ],
+              },
+            ],
+          },
+        },
       }, 
   };
 
 local manifests =
   // Uncomment line below to enable vertical auto scaling of kube-state-metrics
-  //{ ['ksm-autoscaler-' + name]: kp.ksmAutoscaler[name] for name in std.objectFields(kp.ksmAutoscaler) } +
+  // { ['ksm-autoscaler-' + name]: kp.ksmAutoscaler[name] for name in std.objectFields(kp.ksmAutoscaler) } +
   { ['setup/0namespace-' + name]: kp.kubePrometheus[name] for name in std.objectFields(kp.kubePrometheus) } +
   {
     ['setup/prometheus-operator-' + name]: kp.prometheusOperator[name]

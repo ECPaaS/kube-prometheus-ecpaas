@@ -23,6 +23,8 @@ all: generate fmt test
 generate-in-docker:
 	@echo ">> Compiling assets and generating Kubernetes manifests"
 	$(CONTAINER_CMD) make $(MFLAGS) generate
+	cp ./additional-scrape-configs.yaml ./manifests/
+	rm -rf manifests/prometheus-role*Namespaces.yaml
 
 .PHONY: clean
 clean:

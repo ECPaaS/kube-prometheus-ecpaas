@@ -15,7 +15,7 @@ local kp =
         kubeStateMetrics: "v1.8.0",
         kubeRbacProxy: "v0.4.1",
         addonResizer: "1.8.4",
-        nodeExporter: "v0.18.1", 
+        nodeExporter: "ks-v0.18.1", 
         prometheusOperator: 'v0.33.0',
         configmapReloader: 'v0.0.1',
         prometheusConfigReloader: 'v0.33.0',

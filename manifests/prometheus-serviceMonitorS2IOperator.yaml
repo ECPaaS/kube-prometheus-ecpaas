@@ -2,22 +2,24 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
-    k8s-app: kube-controller-manager
-  name: kube-controller-manager
+    k8s-app: s2i-operator
+  name: s2i-operator
   namespace: kubesphere-monitoring-system
 spec:
   endpoints:
-  - interval: 1m
+  - honorLabels: true
+    interval: 1m
     metricRelabelings:
     - action: keep
-      regex: up
+      regex: s2i_s2ibuilder_created
       sourceLabels:
       - __name__
-    port: http-metrics
+    port: http
   jobLabel: k8s-app
   namespaceSelector:
     matchNames:
-    - kube-system
+    - kubesphere-devops-system
   selector:
     matchLabels:
-      k8s-app: kube-controller-manager
+      app: s2i-metrics
+      control-plane: s2i-controller-manager

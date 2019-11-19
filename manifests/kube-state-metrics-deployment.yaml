@@ -4,7 +4,7 @@ metadata:
   labels:
     app: kube-state-metrics
   name: kube-state-metrics
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
   replicas: 1
   selector:
@@ -21,15 +21,13 @@ spec:
         - --secure-listen-address=:8443
         - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
         - --upstream=http://127.0.0.1:8081/
-        image: quay.io/coreos/kube-rbac-proxy:v0.4.1
+        image: kubesphere/kube-rbac-proxy:v0.4.1
         name: kube-rbac-proxy-main
         ports:
         - containerPort: 8443
           name: https-main
         resources:
-          limits:
-            cpu: 20m
-            memory: 40Mi
+          limits: {}
           requests:
             cpu: 10m
             memory: 20Mi
@@ -38,15 +36,13 @@ spec:
         - --secure-listen-address=:9443
         - --tls-cipher-suites=TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256,TLS_RSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256,TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
         - --upstream=http://127.0.0.1:8082/
-        image: quay.io/coreos/kube-rbac-proxy:v0.4.1
+        image: kubesphere/kube-rbac-proxy:v0.4.1
         name: kube-rbac-proxy-self
         ports:
         - containerPort: 9443
           name: https-self
         resources:
-          limits:
-            cpu: 20m
-            memory: 40Mi
+          limits: {}
           requests:
             cpu: 10m
             memory: 20Mi
@@ -55,12 +51,11 @@ spec:
         - --port=8081
         - --telemetry-host=127.0.0.1
         - --telemetry-port=8082
-        image: quay.io/coreos/kube-state-metrics:v1.8.0
+        - --metric-blacklist=kube_pod_container_status_.*terminated_reason,kube_.+_version,kube_.+_created,kube_deployment_(spec_paused|spec_strategy_rollingupdate_.+),kube_endpoint_(info|address_.+),kube_job_(info|complete|failed|owner|spec_.+|status_.+),kube_cronjob_(info|status_.+|spec_.+),kube_namespace_(status_phase),kube_persistentvolume_(info|status_.+|capacity_.+),kube_persistentvolumeclaim_(status_.+|resource_.+|access_.+),kube_secret_(type),kube_service_(spec_.+|status_.+),kube_ingress_(info|path|tls),kube_replicaset_(status_.+|spec_.+|owner),kube_poddisruptionbudget_status_.+,kube_replicationcontroller_.+,kube_node_(info|role|spec_.+|status_allocatable_.+),kube_.+_updated,kube_.+_generation,kube_.+_revision
+        image: kubesphere/kube-state-metrics:v1.8.0
         name: kube-state-metrics
         resources:
-          limits:
-            cpu: 100m
-            memory: 150Mi
+          limits: {}
           requests:
             cpu: 100m
             memory: 150Mi

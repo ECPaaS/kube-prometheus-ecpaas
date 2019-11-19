@@ -4,7 +4,7 @@ metadata:
   labels:
     app: node-exporter
   name: node-exporter
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
   selector:
     matchLabels:
@@ -22,12 +22,10 @@ spec:
         - --path.rootfs=/host/root
         - --collector.filesystem.ignored-mount-points=^/(dev|proc|sys|var/lib/docker/.+)($|/)
         - --collector.filesystem.ignored-fs-types=^(autofs|binfmt_misc|cgroup|configfs|debugfs|devpts|devtmpfs|fusectl|hugetlbfs|mqueue|overlay|proc|procfs|pstore|rpc_pipefs|securityfs|sysfs|tracefs)$
-        image: quay.io/prometheus/node-exporter:v0.18.1
+        image: kubesphere/node-exporter:ks-v0.18.1
         name: node-exporter
         resources:
-          limits:
-            cpu: 250m
-            memory: 180Mi
+          limits: {}
           requests:
             cpu: 102m
             memory: 180Mi
@@ -52,16 +50,14 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: quay.io/coreos/kube-rbac-proxy:v0.4.1
+        image: kubesphere/kube-rbac-proxy:v0.4.1
         name: kube-rbac-proxy
         ports:
         - containerPort: 9100
           hostPort: 9100
           name: https
         resources:
-          limits:
-            cpu: 20m
-            memory: 40Mi
+          limits: {}
           requests:
             cpu: 10m
             memory: 20Mi

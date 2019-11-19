@@ -4,30 +4,76 @@ metadata:
   labels:
     prometheus: k8s
   name: k8s
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
+  additionalScrapeConfigs:
+    key: prometheus-additional.yaml
+    name: additional-scrape-configs
+  affinity:
+    podAntiAffinity:
+      preferredDuringSchedulingIgnoredDuringExecution:
+      - podAffinityTerm:
+          labelSelector:
+            matchExpressions:
+            - key: prometheus
+              operator: In
+              values:
+              - k8s
+          namespaces:
+          - kubesphere-monitoring-system
+          topologyKey: kubernetes.io/hostname
+        weight: 100
   alerting:
     alertmanagers:
     - name: alertmanager-main
-      namespace: monitoring
+      namespace: kubesphere-monitoring-system
       port: web
-  baseImage: quay.io/prometheus/prometheus
+  baseImage: kubesphere/prometheus
   nodeSelector:
     kubernetes.io/os: linux
   podMonitorSelector: {}
+  query:
+    maxConcurrency: 1000
   replicas: 2
   resources:
     requests:
       memory: 400Mi
+  retention: 7d
   ruleSelector:
     matchLabels:
       prometheus: k8s
       role: alert-rules
+  scrapeInterval: 1m
   securityContext:
-    fsGroup: 2000
-    runAsNonRoot: true
-    runAsUser: 1000
+    fsGroup: 0
+    runAsNonRoot: false
+    runAsUser: 0
   serviceAccountName: prometheus-k8s
   serviceMonitorNamespaceSelector: {}
-  serviceMonitorSelector: {}
+  serviceMonitorSelector:
+    matchExpressions:
+    - key: k8s-app
+      operator: In
+      values:
+      - kube-state-metrics
+      - node-exporter
+      - kubelet
+      - prometheus
+      - etcd
+      - coredns
+      - apiserver
+      - kube-scheduler
+      - kube-controller-manager
+      - s2i-operator
+  storage:
+    volumeClaimTemplate:
+      spec:
+        resources:
+          requests:
+            storage: 20Gi
+  tolerations:
+  - effect: NoSchedule
+    key: dedicated
+    operator: Equal
+    value: monitoring
   version: v2.11.0

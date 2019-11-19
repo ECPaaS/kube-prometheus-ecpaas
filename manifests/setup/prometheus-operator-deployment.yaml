@@ -6,7 +6,7 @@ metadata:
     app.kubernetes.io/name: prometheus-operator
     app.kubernetes.io/version: v0.33.0
   name: prometheus-operator
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
   replicas: 1
   selector:
@@ -24,9 +24,10 @@ spec:
       - args:
         - --kubelet-service=kube-system/kubelet
         - --logtostderr=true
-        - --config-reloader-image=quay.io/coreos/configmap-reload:v0.0.1
-        - --prometheus-config-reloader=quay.io/coreos/prometheus-config-reloader:v0.33.0
-        image: quay.io/coreos/prometheus-operator:v0.33.0
+        - --config-reloader-image=kubesphere/configmap-reload:v0.0.1
+        - --prometheus-config-reloader=kubesphere/prometheus-config-reloader:v0.33.0
+        - --config-reloader-cpu=0
+        image: kubesphere/prometheus-operator:v0.33.0
         name: prometheus-operator
         ports:
         - containerPort: 8080

@@ -2,10 +2,10 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   name: grafana
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
   endpoints:
-  - interval: 15s
+  - interval: 1m
     port: http
   selector:
     matchLabels:

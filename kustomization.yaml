@@ -55,6 +55,7 @@ resources:
 - ./manifests/prometheus-serviceMonitorKubeControllerManager.yaml
 - ./manifests/prometheus-serviceMonitorKubeScheduler.yaml
 - ./manifests/prometheus-serviceMonitorKubelet.yaml
+- ./manifests/prometheus-serviceMonitorS2IOperator.yaml
 - ./manifests/setup/0namespace-namespace.yaml
 - ./manifests/setup/prometheus-operator-0alertmanagerCustomResourceDefinition.yaml
 - ./manifests/setup/prometheus-operator-0podmonitorCustomResourceDefinition.yaml

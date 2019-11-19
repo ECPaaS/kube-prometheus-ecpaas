@@ -4,10 +4,10 @@ metadata:
   labels:
     k8s-app: alertmanager
   name: alertmanager
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
   endpoints:
-  - interval: 30s
+  - interval: 1m
     port: web
   selector:
     matchLabels:

@@ -4,11 +4,14 @@ metadata:
   labels:
     k8s-app: prometheus
   name: prometheus
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
   endpoints:
-  - interval: 30s
+  - interval: 1m
     port: web
+    relabelings:
+    - action: labeldrop
+      regex: (service|endpoint)
   selector:
     matchLabels:
       prometheus: k8s

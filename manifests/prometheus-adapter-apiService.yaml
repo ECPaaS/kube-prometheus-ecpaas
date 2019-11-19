@@ -8,6 +8,6 @@ spec:
   insecureSkipTLSVerify: true
   service:
     name: prometheus-adapter
-    namespace: monitoring
+    namespace: kubesphere-monitoring-system
   version: v1beta1
   versionPriority: 100

@@ -4,22 +4,22 @@ metadata:
   labels:
     k8s-app: kube-state-metrics
   name: kube-state-metrics
-  namespace: monitoring
+  namespace: kubesphere-monitoring-system
 spec:
   endpoints:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
-    interval: 30s
+    interval: 1m
     port: https-main
     relabelings:
     - action: labeldrop
-      regex: (pod|service|endpoint|namespace)
+      regex: (service|endpoint)
     scheme: https
     scrapeTimeout: 30s
     tlsConfig:
       insecureSkipVerify: true
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
-    interval: 30s
+    interval: 1m
     port: https-self
     scheme: https
     tlsConfig:

@@ -150,6 +150,7 @@ local kp =
             '--port=8081',
             '--telemetry-host=127.0.0.1',
             '--telemetry-port=8082',
+            '--metric-blacklist=kube_pod_container_status_.*terminated_reason,kube_.+_version,kube_.+_created,kube_deployment_(spec_paused|spec_strategy_rollingupdate_.+),kube_endpoint_(info|address_.+),kube_job_(info|complete|failed|owner|spec_.+|status_.+),kube_cronjob_(info|status_.+|spec_.+),kube_namespace_(status_phase),kube_persistentvolume_(info|status_.+|capacity_.+),kube_persistentvolumeclaim_(status_.+|resource_.+|access_.+),kube_secret_(type),kube_service_(spec_.+|status_.+),kube_ingress_(info|path|tls),kube_replicaset_(status_.+|spec_.+|owner),kube_poddisruptionbudget_status_.+,kube_replicationcontroller_.+,kube_node_(info|role|spec_.+|status_allocatable_.+),kube_.+_updated,kube_.+_generation,kube_.+_revision',
           ] + if $._config.kubeStateMetrics.collectors != '' then ['--collectors=' + $._config.kubeStateMetrics.collectors] else []) +
           container.mixin.resources.withRequests({ cpu: $._config.kubeStateMetrics.baseCPU, memory: $._config.kubeStateMetrics.baseMemory }) +
           container.mixin.resources.withLimits({});
@@ -185,14 +186,6 @@ local kp =
                 tlsConfig: {
                   insecureSkipVerify: true,
                 },
-                metricRelabelings: [
-                  // Drop unused metrics
-                  {
-                    sourceLabels: ['__name__'],
-                    regex: 'kube_pod_container_status_.*terminated_reason',
-                    action: 'drop',
-                  },
-                ],
               },
               {
                 port: 'https-self',

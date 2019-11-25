@@ -26,7 +26,7 @@
       "name": "grafana-builder",
       "source": {
         "git": {
-          "remote": "https://github.com/kausalco/public",
+          "remote": "https://github.com/grafana/jsonnet-libs",
           "subdir": "grafana-builder"
         }
       },
@@ -72,8 +72,8 @@
           "subdir": ""
         }
       },
-      "version": "a08a6754d527eae13c553bd7565d5f4e9e9f3c0e",
-      "sum": "oZX9k518HeoNNerJCAQBL78RHXtIGBndI1ePE3TQLsc="
+      "version": "0e498aa1eabd65e57049c627e5106863f1216351",
+      "sum": "wGDZzhpc1UeKb0ZSl+GZ2fTXNtQbeGJdR5EsflOKMis="
     },
     {
       "name": "node-mixin",

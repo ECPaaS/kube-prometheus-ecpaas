@@ -381,7 +381,7 @@ local kp =
                   // Drop unused metrics
                   {
                     sourceLabels: ['__name__'],
-                    regex: 'kubelet_running_container_count|kubelet_running_pod_count|kubelet_volume_stats.*',
+                    regex: 'kubelet_node_name|kubelet_running_container_count|kubelet_running_pod_count|kubelet_volume_stats.*',
                     action: 'keep',
                   },
                 ],
@@ -405,7 +405,7 @@ local kp =
                 metricRelabelings: [
                   {
                     sourceLabels: ['__name__'],
-                    regex: 'container_cpu_usage_seconds_total|container_memory_usage_bytes|container_memory_cache|container_network_.+_bytes_total|container_memory_working_set_bytes',
+                    regex: 'container_cpu_usage_seconds_total|container_memory_usage_bytes|container_memory_cache|container_network_.+_bytes_total|container_memory_working_set_bytes|container_cpu_cfs_.*periods_total',
                     action: 'keep',
                   },
                 ],

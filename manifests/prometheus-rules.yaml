@@ -747,31 +747,6 @@ spec:
       for: 5m
       labels:
         severity: critical
-  - name: kubernetes-system
-    rules:
-    - alert: KubeVersionMismatch
-      annotations:
-        message: There are {{ $value }} different semantic versions of Kubernetes
-          components running.
-        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeversionmismatch
-      expr: |
-        count(count by (gitVersion) (label_replace(kubernetes_build_info{job!~"kube-dns|coredns"},"gitVersion","$1","gitVersion","(v[0-9]*.[0-9]*.[0-9]*).*"))) > 1
-      for: 15m
-      labels:
-        severity: warning
-    - alert: KubeClientErrors
-      annotations:
-        message: Kubernetes API server client '{{ $labels.job }}/{{ $labels.instance
-          }}' is experiencing {{ $value | humanizePercentage }} errors.'
-        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeclienterrors
-      expr: |
-        (sum(rate(rest_client_requests_total{code=~"5.."}[5m])) by (instance, job)
-          /
-        sum(rate(rest_client_requests_total[5m])) by (instance, job))
-        > 0.01
-      for: 15m
-      labels:
-        severity: warning
   - name: kubernetes-system-apiserver
     rules:
     - alert: KubeAPILatencyHigh
@@ -906,28 +881,6 @@ spec:
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeletdown
       expr: |
         absent(up{job="kubelet"} == 1)
-      for: 15m
-      labels:
-        severity: critical
-  - name: kubernetes-system-scheduler
-    rules:
-    - alert: KubeSchedulerDown
-      annotations:
-        message: KubeScheduler has disappeared from Prometheus target discovery.
-        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeschedulerdown
-      expr: |
-        absent(up{job="kube-scheduler"} == 1)
-      for: 15m
-      labels:
-        severity: critical
-  - name: kubernetes-system-controller-manager
-    rules:
-    - alert: KubeControllerManagerDown
-      annotations:
-        message: KubeControllerManager has disappeared from Prometheus target discovery.
-        runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubecontrollermanagerdown
-      expr: |
-        absent(up{job="kube-controller-manager"} == 1)
       for: 15m
       labels:
         severity: critical

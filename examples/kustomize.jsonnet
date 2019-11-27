@@ -68,6 +68,14 @@ local kp =
         ],
       },
 
+      alertmanager+:: {
+        config+: {
+          route+: {
+            group_by: ['alertname', 'namespace'],
+          },
+        },
+      },
+
       kubeStateMetrics+:: {
         scrapeInterval: '1m',
       },

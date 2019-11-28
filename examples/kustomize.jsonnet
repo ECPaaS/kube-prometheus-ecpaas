@@ -238,7 +238,7 @@ local kp =
                 metricRelabelings: [
                   {
                     sourceLabels: ['__name__'],
-                    regex: 'node_cpu_.+|node_memory_Mem.+_bytes|node_memory_Cached_bytes|node_memory_Buffers_bytes|node_network_.+_bytes_total|node_disk_.+_completed_total|node_disk_.+_bytes_total|node_filesystem_files|node_filesystem_files_free|node_filesystem_avail_bytes|node_filesystem_size_bytes|node_filesystem_free_bytes|node_load.+',
+                    regex: 'node_cpu_.+|node_memory_Mem.+_bytes|node_memory_SReclaimable_bytes|node_memory_Cached_bytes|node_memory_Buffers_bytes|node_network_.+_bytes_total|node_disk_.+_completed_total|node_disk_.+_bytes_total|node_filesystem_files|node_filesystem_files_free|node_filesystem_avail_bytes|node_filesystem_size_bytes|node_filesystem_free_bytes|node_load.+',
                     action: 'keep',
                   },
                 ],

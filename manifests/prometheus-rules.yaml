@@ -1087,36 +1087,6 @@ spec:
       for: 15m
       labels:
         severity: warning
-  - name: alertmanager.rules
-    rules:
-    - alert: AlertmanagerConfigInconsistent
-      annotations:
-        message: The configuration of the instances of the Alertmanager cluster `{{$labels.service}}`
-          are out of sync.
-      expr: |
-        count_values("config_hash", alertmanager_config_hash{job="alertmanager-main",namespace="kubesphere-monitoring-system"}) BY (service) / ON(service) GROUP_LEFT() label_replace(max(prometheus_operator_spec_replicas{job="prometheus-operator",namespace="kubesphere-monitoring-system",controller="alertmanager"}) by (name, job, namespace, controller), "service", "alertmanager-$1", "name", "(.*)") != 1
-      for: 5m
-      labels:
-        severity: critical
-    - alert: AlertmanagerFailedReload
-      annotations:
-        message: Reloading Alertmanager's configuration has failed for {{ $labels.namespace
-          }}/{{ $labels.pod}}.
-      expr: |
-        alertmanager_config_last_reload_successful{job="alertmanager-main",namespace="kubesphere-monitoring-system"} == 0
-      for: 10m
-      labels:
-        severity: warning
-    - alert: AlertmanagerMembersInconsistent
-      annotations:
-        message: Alertmanager has not found all other members of the cluster.
-      expr: |
-        alertmanager_cluster_members{job="alertmanager-main",namespace="kubesphere-monitoring-system"}
-          != on (service) GROUP_LEFT()
-        count by (service) (alertmanager_cluster_members{job="alertmanager-main",namespace="kubesphere-monitoring-system"})
-      for: 5m
-      labels:
-        severity: critical
   - name: general.rules
     rules:
     - alert: TargetDown
@@ -1139,44 +1109,3 @@ spec:
       expr: vector(1)
       labels:
         severity: none
-  - name: node-time
-    rules:
-    - alert: ClockSkewDetected
-      annotations:
-        message: Clock skew detected on node-exporter {{ $labels.namespace }}/{{ $labels.pod
-          }}. Ensure NTP is configured correctly on this host.
-      expr: |
-        abs(node_timex_offset_seconds{job="node-exporter"}) > 0.05
-      for: 2m
-      labels:
-        severity: warning
-  - name: node-network
-    rules:
-    - alert: NodeNetworkInterfaceFlapping
-      annotations:
-        message: Network interface "{{ $labels.device }}" changing it's up status
-          often on node-exporter {{ $labels.namespace }}/{{ $labels.pod }}"
-      expr: |
-        changes(node_network_up{job="node-exporter",device!~"^(cali.+|tunl.+|dummy.+|kube.+|flannel.+|cni.+|docker.+|veth.+|lo.*)"}[2m]) > 2
-      for: 2m
-      labels:
-        severity: warning
-  - name: prometheus-operator
-    rules:
-    - alert: PrometheusOperatorReconcileErrors
-      annotations:
-        message: Errors while reconciling {{ $labels.controller }} in {{ $labels.namespace
-          }} Namespace.
-      expr: |
-        rate(prometheus_operator_reconcile_errors_total{job="prometheus-operator",namespace="kubesphere-monitoring-system"}[5m]) > 0.1
-      for: 10m
-      labels:
-        severity: warning
-    - alert: PrometheusOperatorNodeLookupErrors
-      annotations:
-        message: Errors while reconciling Prometheus in {{ $labels.namespace }} Namespace.
-      expr: |
-        rate(prometheus_operator_node_address_lookup_errors_total{job="prometheus-operator",namespace="kubesphere-monitoring-system"}[5m]) > 0.1
-      for: 10m
-      labels:
-        severity: warning

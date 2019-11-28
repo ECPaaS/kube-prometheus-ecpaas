@@ -250,6 +250,28 @@ local kp =
     }, 
 
     prometheus+:: {
+      serviceKubeScheduler:
+        local service = k.core.v1.service;
+        local servicePort = k.core.v1.service.mixin.spec.portsType;
+  
+        local kubeSchedulerServicePort = servicePort.newNamed('http-metrics', 10251, 10251);
+  
+        service.new('kube-scheduler-svc', null, kubeSchedulerServicePort) +
+        service.mixin.metadata.withNamespace('kube-system') +
+        service.mixin.metadata.withLabels({ 'k8s-app': 'kube-scheduler' }) +
+        service.mixin.spec.withClusterIp('None') +
+        service.mixin.spec.withSelector({ 'component': 'kube-scheduler' }),
+      serviceKubeControllerManager:
+        local service = k.core.v1.service;
+        local servicePort = k.core.v1.service.mixin.spec.portsType;
+  
+        local kubeControllerManagerServicePort = servicePort.newNamed('http-metrics', 10252, 10252);
+  
+        service.new('kube-controller-manager-svc', null, kubeControllerManagerServicePort) +
+        service.mixin.metadata.withNamespace('kube-system') +
+        service.mixin.metadata.withLabels({ 'k8s-app': 'kube-controller-manager' }) +
+        service.mixin.spec.withClusterIp('None') +
+        service.mixin.spec.withSelector({ 'component': 'kube-controller-manager' }),
       roleSpecificNamespaces:
         {
         },

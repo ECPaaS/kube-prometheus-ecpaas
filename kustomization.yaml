@@ -49,6 +49,8 @@ resources:
 - ./manifests/prometheus-rules.yaml
 - ./manifests/prometheus-service.yaml
 - ./manifests/prometheus-serviceAccount.yaml
+- ./manifests/prometheus-serviceKubeControllerManager.yaml
+- ./manifests/prometheus-serviceKubeScheduler.yaml
 - ./manifests/prometheus-serviceMonitor.yaml
 - ./manifests/prometheus-serviceMonitorApiserver.yaml
 - ./manifests/prometheus-serviceMonitorCoreDNS.yaml

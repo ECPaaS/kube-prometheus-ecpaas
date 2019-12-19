@@ -88,6 +88,36 @@ local kp =
 //        clientCert: importstr 'etcd-client.crt',
 //        serverName: 'etcd.kube-system.svc.cluster.local',
 //      },
+      prometheusAdapter+:: {
+        config: |||
+          resourceRules:
+            cpu:
+              containerQuery: sum(irate(container_cpu_usage_seconds_total{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}[5m])) by (<<.GroupBy>>)
+              nodeQuery: sum(irate(node_cpu_seconds_total{mode="used"}[5m]) * on(namespace, pod) group_left(node) node_namespace_pod:kube_pod_info:{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+              resources:
+                overrides:
+                  node:
+                    resource: node
+                  namespace:
+                    resource: namespace
+                  pod:
+                    resource: pod
+              containerLabel: container
+            memory:
+              containerQuery: sum(container_memory_working_set_bytes{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}) by (<<.GroupBy>>)
+              nodeQuery: sum(node_memory_MemTotal_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_MemFree_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_Cached_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_Buffers_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_SReclaimable_bytes{job="node-exporter",<<.LabelMatchers>>}) by (<<.GroupBy>>)
+              resources:
+                overrides:
+                  instance:
+                    resource: node
+                  namespace:
+                    resource: namespace
+                  pod:
+                    resource: pod
+              containerLabel: container
+            window: 5m
+        |||,
+      },
     },
 
     alertmanager+:: {

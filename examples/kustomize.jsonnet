@@ -90,6 +90,33 @@ local kp =
 //      },
       prometheusAdapter+:: {
         config: |||
+          rules:
+          - seriesQuery: '{namespace!="",__name__!~"^container_.*"}'
+            seriesFilters:
+            - isNot: .*_total$
+            resources:
+              template: <<.Resource>>
+            name:
+              matches: ""
+              as: ""
+            metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+          - seriesQuery: '{namespace!="",__name__!~"^container_.*"}'
+            seriesFilters:
+            - isNot: .*_seconds_total
+            resources:
+              template: <<.Resource>>
+            name:
+              matches: ^(.*)_total$
+              as: ""
+            metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)
+          - seriesQuery: '{namespace!="",__name__!~"^container_.*"}'
+            seriesFilters: []
+            resources:
+              template: <<.Resource>>
+            name:
+              matches: ^(.*)_seconds_total$
+              as: ""
+            metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)
           resourceRules:
             cpu:
               containerQuery: sum(irate(container_cpu_usage_seconds_total{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}[5m])) by (<<.GroupBy>>)

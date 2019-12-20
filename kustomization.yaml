@@ -34,7 +34,11 @@ resources:
 - ./manifests/prometheus-adapter-clusterRoleBindingDelegator.yaml
 - ./manifests/prometheus-adapter-clusterRoleServerResources.yaml
 - ./manifests/prometheus-adapter-configMap.yaml
+- ./manifests/prometheus-adapter-customMetricsApiService.yaml
+- ./manifests/prometheus-adapter-customMetricsClusterRole.yaml
+- ./manifests/prometheus-adapter-customMetricsClusterRoleBinding.yaml
 - ./manifests/prometheus-adapter-deployment.yaml
+- ./manifests/prometheus-adapter-hpaCustomMetricsClusterRoleBinding.yaml
 - ./manifests/prometheus-adapter-roleBindingAuthReader.yaml
 - ./manifests/prometheus-adapter-service.yaml
 - ./manifests/prometheus-adapter-serviceAccount.yaml

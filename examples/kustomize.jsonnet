@@ -41,6 +41,7 @@ local kp =
       },
 
       prometheus+:: {
+        namePrefix: 'ks-',
         retention: '7d',
         scrapeInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
@@ -78,9 +79,17 @@ local kp =
       },
 
       kubeStateMetrics+:: {
+        name: 'ks-kube-state-metrics',
         scrapeInterval: '1m',
       },
 
+      nodeExporter+:: {
+        name: 'ks-node-exporter',
+      },
+
+      prometheusOperator+:: {
+        name: 'ks-prometheus-operator',
+      },
 //      etcd+:: {
 //        ips: ['127.0.0.1'],
 //        clientCA: importstr 'etcd-client-ca.crt',
@@ -89,6 +98,7 @@ local kp =
 //        serverName: 'etcd.kube-system.svc.cluster.local',
 //      },
       prometheusAdapter+:: {
+        namePrefix: 'ks-',
         customMetricsClusterRole: 'custom-metrics-server-resources',
         hpaCustomMetricsClusterRole: 'hpa-controller-custom-metrics',
         hpaServiceAccount: 'horizontal-pod-autoscaler',
@@ -179,6 +189,15 @@ local kp =
         },      
     }, 
     kubeStateMetrics+:: {
+      clusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.kubeStateMetrics.name) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName('kube-state-metrics') +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'kube-state-metrics', namespace: $._config.namespace }]),
       deployment:
         local deployment = k.apps.v1.deployment;
         local container = deployment.mixin.spec.template.spec.containersType;
@@ -272,6 +291,15 @@ local kp =
     }, 
 
     nodeExporter+:: {
+      clusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.nodeExporter.name) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName('node-exporter') +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'node-exporter', namespace: $._config.namespace }]),
       serviceMonitor+:
         {
           spec+: {
@@ -309,6 +337,19 @@ local kp =
           },
         },      
     }, 
+
+    prometheusOperator+:: {
+      clusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withLabels($._config.prometheusOperator.commonLabels) +
+        clusterRoleBinding.mixin.metadata.withName($._config.prometheusOperator.name) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName('prometheus-operator') +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'prometheus-operator', namespace: $._config.namespace }]),
+    },
 
     prometheus+:: {
       serviceKubeScheduler:
@@ -363,6 +404,15 @@ local kp =
         clusterRole.new() +
         clusterRole.mixin.metadata.withName('prometheus-' + self.name) +
         clusterRole.withRules(rules),
+      clusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.prometheus.namePrefix + 'prometheus-' + self.name) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName('prometheus-' + self.name) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'prometheus-' + $._config.prometheus.name, namespace: $._config.namespace }]),
       prometheus+:
         local statefulSet = k.apps.v1.statefulSet;
         local toleration = statefulSet.mixin.spec.template.spec.tolerationsType;
@@ -616,6 +666,46 @@ local kp =
         },
       }, 
     prometheusAdapter+:: {
+      clusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + $._config.prometheusAdapter.name) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName($.prometheusAdapter.clusterRole.metadata.name) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+      clusterRoleBindingDelegator:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + 'resource-metrics:system:auth-delegator') +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName('system:auth-delegator') +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+      roleBindingAuthReader:
+        local roleBinding = k.rbac.v1.roleBinding;
+  
+        roleBinding.new() +
+        roleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + 'resource-metrics-auth-reader') +
+        roleBinding.mixin.metadata.withNamespace('kube-system') +
+        roleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        roleBinding.mixin.roleRef.withName('extension-apiserver-authentication-reader') +
+        roleBinding.mixin.roleRef.mixinInstance({ kind: 'Role' }) +
+        roleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
       customMetricsApiService:
         {
           apiVersion: 'apiregistration.k8s.io/v1',
@@ -649,7 +739,7 @@ local kp =
       customMetricsClusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.customMetricsClusterRole) +
+        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + $._config.prometheusAdapter.customMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName($._config.prometheusAdapter.customMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -661,7 +751,7 @@ local kp =
       hpaCustomMetricsClusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.hpaCustomMetricsClusterRole) +
+        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + $._config.prometheusAdapter.hpaCustomMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName($._config.prometheusAdapter.customMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +

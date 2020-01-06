@@ -45,7 +45,7 @@ local kp =
         retention: '7d',
         scrapeInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
-        serviceMonitorSelector: {matchExpressions: [{key: 'k8s-app', operator: 'In', values: ['prometheus-operator', 'alertmanager', 'kube-state-metrics', 'node-exporter', 'kubelet', 'prometheus', 'etcd', 'coredns', 'apiserver', 'kube-scheduler', 'kube-controller-manager', 's2i-operator']}]},
+        serviceMonitorSelector: {matchExpressions: [{key: 'app.kubernetes.io/name', operator: 'In', values: ['prometheus-operator']}, {key: 'k8s-app', operator: 'In', values: ['alertmanager', 'kube-state-metrics', 'node-exporter', 'kubelet', 'prometheus', 'etcd', 'coredns', 'apiserver', 'kube-scheduler', 'kube-controller-manager', 's2i-operator']}]},
         storage: {
           volumeClaimTemplate: {
             spec: {

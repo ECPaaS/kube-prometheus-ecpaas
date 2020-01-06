@@ -57,26 +57,7 @@ spec:
     runAsUser: 0
   serviceAccountName: prometheus-k8s
   serviceMonitorNamespaceSelector: {}
-  serviceMonitorSelector:
-    matchExpressions:
-    - key: app.kubernetes.io/name
-      operator: In
-      values:
-      - prometheus-operator
-    - key: k8s-app
-      operator: In
-      values:
-      - alertmanager
-      - kube-state-metrics
-      - node-exporter
-      - kubelet
-      - prometheus
-      - etcd
-      - coredns
-      - apiserver
-      - kube-scheduler
-      - kube-controller-manager
-      - s2i-operator
+  serviceMonitorSelector: {}
   storage:
     volumeClaimTemplate:
       spec:

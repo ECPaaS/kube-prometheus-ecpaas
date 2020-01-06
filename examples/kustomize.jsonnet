@@ -1,7 +1,7 @@
 local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
 local kp =
   (import 'kube-prometheus/kube-prometheus.libsonnet') +
-//(import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
+  (import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
 //(import 'kube-prometheus/ksm-autoscaler/ksm-autoscaler.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-strip-limits.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-anti-affinity.libsonnet') +
@@ -90,13 +90,13 @@ local kp =
       prometheusOperator+:: {
         name: 'ks-prometheus-operator',
       },
-//      etcd+:: {
-//        ips: ['127.0.0.1'],
-//        clientCA: importstr 'etcd-client-ca.crt',
-//        clientKey: importstr 'etcd-client.key',
-//        clientCert: importstr 'etcd-client.crt',
-//        serverName: 'etcd.kube-system.svc.cluster.local',
-//      },
+      etcd+:: {
+        ips: ['127.0.0.1'],
+        clientCA: importstr 'etcd-client-ca.crt',
+        clientKey: importstr 'etcd-client.key',
+        clientCert: importstr 'etcd-client.crt',
+        serverName: 'etcd.kube-system.svc.cluster.local',
+      },
       prometheusAdapter+:: {
         namePrefix: 'ks-',
         customMetricsClusterRole: 'custom-metrics-server-resources',

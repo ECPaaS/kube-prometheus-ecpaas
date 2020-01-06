@@ -44,6 +44,7 @@ resources:
 - ./manifests/prometheus-adapter-serviceAccount.yaml
 - ./manifests/prometheus-clusterRole.yaml
 - ./manifests/prometheus-clusterRoleBinding.yaml
+- ./manifests/prometheus-endpointsEtcd.yaml
 - ./manifests/prometheus-operator-serviceMonitor.yaml
 - ./manifests/prometheus-prometheus.yaml
 - ./manifests/prometheus-roleBindingConfig.yaml
@@ -51,13 +52,16 @@ resources:
 - ./manifests/prometheus-roleConfig.yaml
 - ./manifests/prometheus-roleSpecificNamespaces.yaml
 - ./manifests/prometheus-rules.yaml
+- ./manifests/prometheus-secretEtcdCerts.yaml
 - ./manifests/prometheus-service.yaml
 - ./manifests/prometheus-serviceAccount.yaml
+- ./manifests/prometheus-serviceEtcd.yaml
 - ./manifests/prometheus-serviceKubeControllerManager.yaml
 - ./manifests/prometheus-serviceKubeScheduler.yaml
 - ./manifests/prometheus-serviceMonitor.yaml
 - ./manifests/prometheus-serviceMonitorApiserver.yaml
 - ./manifests/prometheus-serviceMonitorCoreDNS.yaml
+- ./manifests/prometheus-serviceMonitorEtcd.yaml
 - ./manifests/prometheus-serviceMonitorKubeControllerManager.yaml
 - ./manifests/prometheus-serviceMonitorKubeScheduler.yaml
 - ./manifests/prometheus-serviceMonitorKubelet.yaml

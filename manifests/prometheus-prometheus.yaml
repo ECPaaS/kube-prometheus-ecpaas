@@ -51,6 +51,8 @@ spec:
       prometheus: k8s
       role: alert-rules
   scrapeInterval: 1m
+  secrets:
+  - kube-etcd-client-certs
   securityContext:
     fsGroup: 0
     runAsNonRoot: false

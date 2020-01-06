@@ -25,6 +25,7 @@ generate-in-docker:
 	$(CONTAINER_CMD) make $(MFLAGS) generate
 	cp ./additional-scrape-configs.yaml ./manifests/
 	rm -rf manifests/prometheus-role*Namespaces.yaml
+	rm -rf manifests/grafana-serviceMonitor.yaml
 
 .PHONY: clean
 clean:

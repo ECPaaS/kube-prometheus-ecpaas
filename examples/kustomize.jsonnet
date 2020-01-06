@@ -45,7 +45,7 @@ local kp =
         retention: '7d',
         scrapeInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
-        serviceMonitorSelector: {matchExpressions: [{key: 'k8s-app', operator: 'In', values: ['kube-state-metrics', 'node-exporter', 'kubelet', 'prometheus', 'etcd', 'coredns', 'apiserver', 'kube-scheduler', 'kube-controller-manager', 's2i-operator']}]},
+        serviceMonitorSelector: {matchExpressions: [{key: 'k8s-app', operator: 'In', values: ['prometheus-operator', 'alertmanager', 'kube-state-metrics', 'node-exporter', 'kubelet', 'prometheus', 'etcd', 'coredns', 'apiserver', 'kube-scheduler', 'kube-controller-manager', 's2i-operator']}]},
         storage: {
           volumeClaimTemplate: {
             spec: {
@@ -328,7 +328,7 @@ local kp =
                 metricRelabelings: [
                   {
                     sourceLabels: ['__name__'],
-                    regex: 'node_cpu_.+|node_memory_Mem.+_bytes|node_memory_SReclaimable_bytes|node_memory_Cached_bytes|node_memory_Buffers_bytes|node_network_.+_bytes_total|node_disk_.+_completed_total|node_disk_.+_bytes_total|node_filesystem_files|node_filesystem_files_free|node_filesystem_avail_bytes|node_filesystem_size_bytes|node_filesystem_free_bytes|node_load.+',
+                    regex: 'node_cpu_.+|node_memory_Mem.+_bytes|node_memory_SReclaimable_bytes|node_memory_Cached_bytes|node_memory_Buffers_bytes|node_network_.+_bytes_total|node_disk_.+_completed_total|node_disk_.+_bytes_total|node_filesystem_files|node_filesystem_files_free|node_filesystem_avail_bytes|node_filesystem_size_bytes|node_filesystem_free_bytes|node_load.+|node_timex_.+|node_network_.+',
                     action: 'keep',
                   },
                 ],

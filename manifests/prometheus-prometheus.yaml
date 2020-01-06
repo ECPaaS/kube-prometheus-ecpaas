@@ -59,10 +59,13 @@ spec:
   serviceMonitorNamespaceSelector: {}
   serviceMonitorSelector:
     matchExpressions:
-    - key: k8s-app
+    - key: app.kubernetes.io/name
       operator: In
       values:
       - prometheus-operator
+    - key: k8s-app
+      operator: In
+      values:
       - alertmanager
       - kube-state-metrics
       - node-exporter

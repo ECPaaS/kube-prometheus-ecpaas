@@ -3,3 +3,5 @@ minikube-manifests/
 vendor/
 ./auth
 .swp
+node_modules/
+package*.json

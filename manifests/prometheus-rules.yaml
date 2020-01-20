@@ -8,6 +8,23 @@ metadata:
   namespace: kubesphere-monitoring-system
 spec:
   groups:
+  - name: kube-apiserver.rules
+    rules:
+    - expr: |
+        histogram_quantile(0.99, sum(rate(apiserver_request_duration_seconds_bucket{job="apiserver"}[5m])) without(instance, pod))
+      labels:
+        quantile: "0.99"
+      record: cluster_quantile:apiserver_request_duration_seconds:histogram_quantile
+    - expr: |
+        histogram_quantile(0.9, sum(rate(apiserver_request_duration_seconds_bucket{job="apiserver"}[5m])) without(instance, pod))
+      labels:
+        quantile: "0.9"
+      record: cluster_quantile:apiserver_request_duration_seconds:histogram_quantile
+    - expr: |
+        histogram_quantile(0.5, sum(rate(apiserver_request_duration_seconds_bucket{job="apiserver"}[5m])) without(instance, pod))
+      labels:
+        quantile: "0.5"
+      record: cluster_quantile:apiserver_request_duration_seconds:histogram_quantile
   - name: k8s.rules
     rules:
     - expr: |
@@ -377,65 +394,6 @@ spec:
     - expr: |
         sum(up{job="coredns"} == 1)
       record: coredns:up:sum
-    - expr: |
-        sum(irate(coredns_cache_hits_total{job="coredns"}[5m]))
-      record: coredns:coredns_cache_hits_total:sum_irate
-    - expr: |
-        sum(irate(coredns_cache_misses{job="coredns"}[5m]))
-      record: coredns:coredns_cache_misses:sum_irate
-    - expr: |
-        sum(irate(coredns_dns_request_count_total{job="coredns"}[5m]))
-      record: coredns:coredns_dns_request_count:sum_irate
-    - expr: |
-        sum(irate(coredns_dns_request_type_count_total{job="coredns"}[5m])) by (type)
-      record: coredns:coredns_dns_request_type_count:sum_irate
-    - expr: |
-        sum(irate(coredns_dns_response_rcode_count_total{job="coredns"}[5m])) by (rcode)
-      record: coredns:coredns_dns_response_rcode_count:sum_irate
-    - expr: |
-        sum(irate(coredns_panic_count_total{job="coredns"}[5m]))
-      record: coredns:coredns_panic_count:sum_irate
-    - expr: |
-        sum(irate(coredns_proxy_request_count_total{job="coredns"}[5m]))
-      record: coredns:coredns_proxy_request_count:sum_irate
-    - expr: |
-        sum(irate(coredns_dns_request_duration_seconds_sum{job="coredns"}[5m])) / sum(irate(coredns_dns_request_duration_seconds_count{job="coredns"}[5m]))
-      record: coredns:coredns_dns_request_duration:avg
-    - expr: |
-        sum(irate(coredns_proxy_request_duration_seconds_sum{job="coredns"}[5m])) / sum(irate(coredns_proxy_request_duration_seconds_count{job="coredns"}[5m]))
-      record: coredns:coredns_proxy_request_duration:avg
-  - name: coredns_histogram.rules
-    rules:
-    - expr: |
-        histogram_quantile(0.99, sum(irate(coredns_dns_request_duration_seconds_bucket{job="coredns"}[5m])) by (le))
-      labels:
-        quantile: "0.99"
-      record: coredns:coredns_dns_request_duration:histogram_quantile
-    - expr: |
-        histogram_quantile(0.9, sum(irate(coredns_dns_request_duration_seconds_bucket{job="coredns"}[5m])) by (le))
-      labels:
-        quantile: "0.9"
-      record: coredns:coredns_dns_request_duration:histogram_quantile
-    - expr: |
-        histogram_quantile(0.5, sum(irate(coredns_dns_request_duration_seconds_bucket{job="coredns"}[5m])) by (le))
-      labels:
-        quantile: "0.5"
-      record: coredns:coredns_dns_request_duration:histogram_quantile
-    - expr: |
-        histogram_quantile(0.99, sum(irate(coredns_proxy_request_duration_seconds_bucket{job="coredns"}[5m])) by (le))
-      labels:
-        quantile: "0.99"
-      record: coredns:coredns_proxy_request_duration:histogram_quantile
-    - expr: |
-        histogram_quantile(0.9, sum(irate(coredns_proxy_request_duration_seconds_bucket{job="coredns"}[5m])) by (le))
-      labels:
-        quantile: "0.9"
-      record: coredns:coredns_proxy_request_duration:histogram_quantile
-    - expr: |
-        histogram_quantile(0.5, sum(irate(coredns_proxy_request_duration_seconds_bucket{job="coredns"}[5m])) by (le))
-      labels:
-        quantile: "0.5"
-      record: coredns:coredns_proxy_request_duration:histogram_quantile
   - name: prometheus.rules
     rules:
     - expr: |

@@ -96,6 +96,7 @@ local kp =
         clientKey: importstr 'etcd-client.key',
         clientCert: importstr 'etcd-client.crt',
         serverName: 'etcd.kube-system.svc.cluster.local',
+        rules: $.prometheusEtcdAlerts,
       },
       prometheusAdapter+:: {
         namePrefix: 'ks-',
@@ -662,6 +663,22 @@ local kp =
                 ],
               },
             ],
+          },
+        },
+      rulesEtcd:
+        {
+          apiVersion: 'monitoring.coreos.com/v1',
+          kind: 'PrometheusRule',
+          metadata: {
+            labels: {
+              prometheus: $._config.prometheus.name,
+              role: 'alert-rules',
+            },
+            name: 'prometheus-' + $._config.prometheus.name + '-etcd-rules',
+            namespace: $._config.namespace,
+          },
+          spec: {
+            groups: $._config.etcd.rules.groups,
           },
         },
       }, 

@@ -96,7 +96,7 @@ local kp =
         clientKey: importstr 'etcd-client.key',
         clientCert: importstr 'etcd-client.crt',
         serverName: 'etcd.kube-system.svc.cluster.local',
-        rules: $.prometheusEtcdAlerts,
+        rules: $.prometheusEtcdRules + $.prometheusEtcdAlerts,
       },
       prometheusAdapter+:: {
         namePrefix: 'ks-',

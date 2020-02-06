@@ -8,8 +8,8 @@
           "subdir": "Documentation/etcd-mixin"
         }
       },
-      "version": "3ef2ad8e115449a7004b628a873e2629855ed468",
-      "sum": "bkp18AxkOUYnVC15Gh9EoIi+mMAn0IT3hMzb8mlzpSw="
+      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e",
+      "sum": "Bnd9hYM0+w4yP5YA+Z9Mn4jSYOOxwXEvulnqsIQlbnU="
     },
     {
       "name": "grafana",

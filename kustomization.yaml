@@ -52,6 +52,7 @@ resources:
 - ./manifests/prometheus-roleConfig.yaml
 - ./manifests/prometheus-roleSpecificNamespaces.yaml
 - ./manifests/prometheus-rules.yaml
+- ./manifests/prometheus-rulesEtcd.yaml
 - ./manifests/prometheus-secretEtcdCerts.yaml
 - ./manifests/prometheus-service.yaml
 - ./manifests/prometheus-serviceAccount.yaml

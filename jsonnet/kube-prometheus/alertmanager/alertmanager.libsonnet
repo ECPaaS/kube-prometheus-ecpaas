@@ -5,7 +5,7 @@ local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
     namespace: 'default',
 
     versions+:: {
-      alertmanager: 'v0.18.0',
+      alertmanager: 'v0.20.0',
     },
 
     imageRepos+:: {
@@ -18,24 +18,53 @@ local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
         global: {
           resolve_timeout: '5m',
         },
+        inhibit_rules: [{
+          source_match: {
+            severity: 'critical',
+          },
+          target_match_re: {
+            severity: 'warning|info',
+          },
+          equal: ['alertname'],
+        }, {
+          source_match: {
+            severity: 'warning',
+          },
+          target_match_re: {
+            severity: 'info',
+          },
+          equal: ['alertname'],
+        }],
         route: {
-          group_by: ['job'],
+          group_by: ['namespace'],
           group_wait: '30s',
           group_interval: '5m',
           repeat_interval: '12h',
-          receiver: 'null',
+          receiver: 'Default',
           routes: [
             {
-              receiver: 'null',
+              receiver: 'Watchdog',
               match: {
                 alertname: 'Watchdog',
+              },
+            },
+            {
+              receiver: 'Critical',
+              match: {
+                severity: 'critical',
               },
             },
           ],
         },
         receivers: [
           {
-            name: 'null',
+            name: 'Default',
+          },
+          {
+            name: 'Watchdog',
+          },
+          {
+            name: 'Critical',
           },
         ],
       },
@@ -48,7 +77,8 @@ local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
       local secret = k.core.v1.secret;
 
       if std.type($._config.alertmanager.config) == 'object' then
-        secret.new('alertmanager-' + $._config.alertmanager.name, { 'alertmanager.yaml': std.base64(std.manifestYamlDoc($._config.alertmanager.config)) }) +
+        secret.new('alertmanager-' + $._config.alertmanager.name, {})
+        .withStringData({ 'alertmanager.yaml': std.manifestYamlDoc($._config.alertmanager.config) }) +
         secret.mixin.metadata.withNamespace($._config.namespace)
       else
         secret.new('alertmanager-' + $._config.alertmanager.name, { 'alertmanager.yaml': std.base64($._config.alertmanager.config) }) +

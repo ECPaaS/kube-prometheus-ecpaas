@@ -236,8 +236,13 @@ The previous steps (compilation) has created a bunch of manifest files in the ma
 Now simply use `kubectl` to install Prometheus and Grafana as per your configuration:
 
 ```shell
+# Update the namespace and CRDs, and then wait for them to be availble before creating the remaining resources
+$ kubectl apply -f manifests/setup
 $ kubectl apply -f manifests/
 ```
+Alternatively, the resources in both folders can be applied with a single command 
+`kubectl apply -Rf manifests`, but it may be necessary to run the command multiple times for all components to
+be created successfullly.
 
 Check the monitoring namespace (or the namespace you have specific in `namespace: `) and make sure the pods are running. Prometheus and Grafana should be up and running soon.
 
@@ -653,6 +658,7 @@ As described in the [Prerequisites](#prerequisites) section, in order to retriev
 
 If you are using Google's GKE product, see [cAdvisor support](docs/GKE-cadvisor-support.md).
 
+If you are using AWS EKS, see [AWS EKS CNI support](docs/EKS-cni-support.md)
 #### Authentication problem
 
 The Prometheus `/targets` page will show the kubelet job with the error `403 Unauthorized`, when token authentication is not enabled. Ensure, that the `--authentication-token-webhook=true` flag is enabled on all kubelet configurations.

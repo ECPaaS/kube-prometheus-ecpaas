@@ -89,7 +89,8 @@ local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
           '--path.procfs=/host/proc',
           '--path.sysfs=/host/sys',
           '--path.rootfs=/host/root',
-
+          '--no-collector.wifi',
+          '--no-collector.hwmon',
           // The following settings have been taken from
           // https://github.com/prometheus/node_exporter/blob/0662673/collector/filesystem_linux.go#L30-L31
           // Once node exporter is being released with those settings, this can be removed.
@@ -105,7 +106,7 @@ local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
         container.new('kube-rbac-proxy', $._config.imageRepos.kubeRbacProxy + ':' + $._config.versions.kubeRbacProxy) +
         container.withArgs([
           '--logtostderr',
-          '--secure-listen-address=$(IP):' + $._config.nodeExporter.port,
+          '--secure-listen-address=[$(IP)]:' + $._config.nodeExporter.port,
           '--tls-cipher-suites=' + std.join(',', $._config.tlsCipherSuites),
           '--upstream=http://127.0.0.1:' + $._config.nodeExporter.port + '/',
         ]) +
@@ -168,7 +169,7 @@ local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
             {
               port: 'https',
               scheme: 'https',
-              interval: '30s',
+              interval: '15s',
               bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
               relabelings: [
                 {

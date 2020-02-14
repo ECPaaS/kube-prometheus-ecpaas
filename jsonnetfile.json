@@ -1,6 +1,17 @@
 {
   "dependencies": [
     {
+      "name": "etcd-mixin",
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubesphere/etcd",
+          "subdir": "Documentation/etcd-mixin"
+        }
+      },
+      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e",
+      "sum": "Bnd9hYM0+w4yP5YA+Z9Mn4jSYOOxwXEvulnqsIQlbnU="
+    },
+    {
       "name": "kube-prometheus",
       "source": {
         "local": {
@@ -8,6 +19,17 @@
         }
       },
       "version": ""
+    },
+    {
+      "name": "kubernetes-mixin",
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubesphere/kubernetes-mixin",
+          "subdir": ""
+        }
+      },
+      "version": "fa5dfb987cb4407b651f139762329d8e992e351f",
+      "sum": "cid8IwM4Qe8E6S1af1RkrNakmUx4Y5IFUB8AWhQQhjo="
     }
   ]
 }

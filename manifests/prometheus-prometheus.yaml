@@ -38,6 +38,7 @@ spec:
   baseImage: kubesphere/prometheus
   nodeSelector:
     kubernetes.io/os: linux
+  podMonitorNamespaceSelector: {}
   podMonitorSelector: {}
   query:
     maxConcurrency: 1000
@@ -71,4 +72,4 @@ spec:
     key: dedicated
     operator: Equal
     value: monitoring
-  version: v2.11.0
+  version: v2.15.2

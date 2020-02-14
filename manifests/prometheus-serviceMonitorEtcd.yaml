@@ -4,10 +4,10 @@ metadata:
   labels:
     k8s-app: etcd
   name: etcd
-  namespace: kube-system
+  namespace: kubesphere-monitoring-system
 spec:
   endpoints:
-  - interval: 30s
+  - interval: 1m
     port: metrics
     scheme: https
     tlsConfig:
@@ -16,6 +16,9 @@ spec:
       keyFile: /etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.key
       serverName: etcd.kube-system.svc.cluster.local
   jobLabel: k8s-app
+  namespaceSelector:
+    matchNames:
+    - kube-system
   selector:
     matchLabels:
       k8s-app: etcd

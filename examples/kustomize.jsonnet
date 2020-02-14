@@ -9,19 +9,20 @@ local kp =
   {
     _config+:: {
       namespace: 'kubesphere-monitoring-system',
+      namePrefix: 'ks-',
 
       versions+:: {
-        prometheus: "v2.11.0",
-        alertmanager: "v0.18.0",
-        kubeStateMetrics: "v1.8.0",
+        prometheus: "v2.15.2",
+        alertmanager: "v0.20.0",
+        kubeStateMetrics: "v1.9.4",
         kubeRbacProxy: "v0.4.1",
         addonResizer: "1.8.4",
         nodeExporter: "ks-v0.18.1", 
-        prometheusOperator: 'v0.33.0',
-        configmapReloader: 'v0.0.1',
-        prometheusConfigReloader: 'v0.33.0',
+        prometheusOperator: 'v0.36.0',
+        configmapReloader: 'v0.3.0',
+        prometheusConfigReloader: 'v0.36.0',
         prometheusAdapter: 'v0.4.1',
-        thanos: "v0.7.0",
+        thanos: "v0.10.0",
         clusterVerticalAutoscaler: "1.0.0"
       },
 
@@ -33,7 +34,7 @@ local kp =
         addonResizer: "kubesphere/addon-resizer",
         nodeExporter: "kubesphere/node-exporter",
         prometheusOperator: "kubesphere/prometheus-operator",
-        configmapReloader: 'kubesphere/configmap-reload',
+        configmapReloader: 'jimmidyson/configmap-reload',
         prometheusConfigReloader: 'kubesphere/prometheus-config-reloader',
         prometheusAdapter: 'kubesphere/k8s-prometheus-adapter-amd64',
         thanos: 'kubesphere/thanos',
@@ -41,7 +42,6 @@ local kp =
       },
 
       prometheus+:: {
-        namePrefix: 'ks-',
         retention: '7d',
         scrapeInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
@@ -72,6 +72,23 @@ local kp =
 
       alertmanager+:: {
         config+: {
+          inhibit_rules: [{
+            source_match: {
+              severity: 'critical',
+            },
+            target_match_re: {
+              severity: 'warning|info',
+            },
+            equal: ['alertname', 'namespace'],
+          }, {
+            source_match: {
+              severity: 'warning',
+            },
+            target_match_re: {
+              severity: 'info',
+            },
+            equal: ['alertname', 'namespace'],
+          }],
           route+: {
             group_by: ['alertname', 'namespace'],
           },
@@ -79,16 +96,17 @@ local kp =
       },
 
       kubeStateMetrics+:: {
-        name: 'ks-kube-state-metrics',
+        name: 'kube-state-metrics',
         scrapeInterval: '1m',
+        scrapeTimeout: '30s',
       },
 
       nodeExporter+:: {
-        name: 'ks-node-exporter',
+        name: 'node-exporter',
       },
 
       prometheusOperator+:: {
-        name: 'ks-prometheus-operator',
+        name: 'prometheus-operator',
       },
       etcd+:: {
         ips: ['127.0.0.1'],
@@ -99,7 +117,6 @@ local kp =
         rules: $.prometheusEtcdRules + $.prometheusEtcdAlerts,
       },
       prometheusAdapter+:: {
-        namePrefix: 'ks-',
         customMetricsClusterRole: 'custom-metrics-server-resources',
         hpaCustomMetricsClusterRole: 'hpa-controller-custom-metrics',
         hpaServiceAccount: 'horizontal-pod-autoscaler',
@@ -189,114 +206,13 @@ local kp =
           },
         },      
     }, 
-    kubeStateMetrics+:: {
-      clusterRoleBinding:
-        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
-  
-        clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.kubeStateMetrics.name) +
-        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
-        clusterRoleBinding.mixin.roleRef.withName('kube-state-metrics') +
-        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
-        clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'kube-state-metrics', namespace: $._config.namespace }]),
-      deployment:
-        local deployment = k.apps.v1.deployment;
-        local container = deployment.mixin.spec.template.spec.containersType;
-        local volume = deployment.mixin.spec.template.spec.volumesType;
-        local containerPort = container.portsType;
-        local containerVolumeMount = container.volumeMountsType;
-        local podSelector = deployment.mixin.spec.template.spec.selectorType;
-  
-        local podLabels = { app: 'kube-state-metrics' };
-  
-        local proxyClusterMetrics =
-          container.new('kube-rbac-proxy-main', $._config.imageRepos.kubeRbacProxy + ':' + $._config.versions.kubeRbacProxy) +
-          container.withArgs([
-            '--logtostderr',
-            '--secure-listen-address=:8443',
-            '--tls-cipher-suites=' + std.join(',', $._config.tlsCipherSuites),
-            '--upstream=http://127.0.0.1:8081/',
-          ]) +
-          container.withPorts(containerPort.newNamed(8443, 'https-main',)) +
-          container.mixin.resources.withRequests($._config.resources['kube-rbac-proxy'].requests) +
-          container.mixin.resources.withLimits($._config.resources['kube-rbac-proxy'].limits);
-  
-        local proxySelfMetrics =
-          container.new('kube-rbac-proxy-self', $._config.imageRepos.kubeRbacProxy + ':' + $._config.versions.kubeRbacProxy) +
-          container.withArgs([
-            '--logtostderr',
-            '--secure-listen-address=:9443',
-            '--tls-cipher-suites=' + std.join(',', $._config.tlsCipherSuites),
-            '--upstream=http://127.0.0.1:8082/',
-          ]) +
-          container.withPorts(containerPort.newNamed(9443, 'https-self',)) +
-          container.mixin.resources.withRequests($._config.resources['kube-rbac-proxy'].requests) +
-          container.mixin.resources.withLimits($._config.resources['kube-rbac-proxy'].limits);
-  
-        local kubeStateMetrics =
-          container.new('kube-state-metrics', $._config.imageRepos.kubeStateMetrics + ':' + $._config.versions.kubeStateMetrics) +
-          container.withArgs([
-            '--host=127.0.0.1',
-            '--port=8081',
-            '--telemetry-host=127.0.0.1',
-            '--telemetry-port=8082',
-            '--metric-blacklist=kube_pod_container_status_.*terminated_reason,kube_.+_version,kube_.+_created,kube_deployment_(spec_paused|spec_strategy_rollingupdate_.+),kube_endpoint_(info|address_.+),kube_job_(info|owner|spec_(parallelism|active_deadline_seconds)|status_(active|.+_time)),kube_cronjob_(info|status_.+|spec_.+),kube_namespace_(status_phase),kube_persistentvolume_(info|capacity_.+),kube_persistentvolumeclaim_(resource_.+|access_.+),kube_secret_(type),kube_service_(spec_.+|status_.+),kube_ingress_(info|path|tls),kube_replicaset_(status_.+|spec_.+|owner),kube_poddisruptionbudget_status_.+,kube_replicationcontroller_.+,kube_node_(info|role),kube_(hpa|replicaset|replicationcontroller)_.+_generation',
-          ] + if $._config.kubeStateMetrics.collectors != '' then ['--collectors=' + $._config.kubeStateMetrics.collectors] else []) +
-          container.mixin.resources.withRequests({ cpu: $._config.kubeStateMetrics.baseCPU, memory: $._config.kubeStateMetrics.baseMemory }) +
-          container.mixin.resources.withLimits({});
-  
-        local c = [proxyClusterMetrics, proxySelfMetrics, kubeStateMetrics];
-  
-        deployment.new('kube-state-metrics', 1, c, podLabels) +
-        deployment.mixin.metadata.withNamespace($._config.namespace) +
-        deployment.mixin.metadata.withLabels(podLabels) +
-        deployment.mixin.spec.selector.withMatchLabels(podLabels) +
-        deployment.mixin.spec.template.spec.withNodeSelector({ 'kubernetes.io/os': 'linux' }) +
-        deployment.mixin.spec.template.spec.securityContext.withRunAsNonRoot(true) +
-        deployment.mixin.spec.template.spec.securityContext.withRunAsUser(65534) +
-        deployment.mixin.spec.template.spec.withServiceAccountName('kube-state-metrics'),
-
-      serviceMonitor+:
-        {
-          spec+: {
-            endpoints: [
-              {
-                port: 'https-main',
-                scheme: 'https',
-                interval: $._config.kubeStateMetrics.scrapeInterval,
-                scrapeTimeout: $._config.kubeStateMetrics.scrapeTimeout,
-                honorLabels: true,
-                bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-                relabelings: [
-                  {
-                    regex: '(service|endpoint)',
-                    action: 'labeldrop',
-                  },
-                ],
-                tlsConfig: {
-                  insecureSkipVerify: true,
-                },
-              },
-              {
-                port: 'https-self',
-                scheme: 'https',
-                interval: '1m',
-                bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-                tlsConfig: {
-                  insecureSkipVerify: true,
-                },
-              },
-            ],            
-          },
-        },      
-    }, 
 
     nodeExporter+:: {
       clusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
   
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.nodeExporter.name) +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.nodeExporter.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName('node-exporter') +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -345,7 +261,7 @@ local kp =
   
         clusterRoleBinding.new() +
         clusterRoleBinding.mixin.metadata.withLabels($._config.prometheusOperator.commonLabels) +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheusOperator.name) +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusOperator.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName('prometheus-operator') +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -409,7 +325,7 @@ local kp =
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
   
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheus.namePrefix + 'prometheus-' + self.name) +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + 'prometheus-' + self.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName('prometheus-' + self.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -463,29 +379,34 @@ local kp =
             ],
           },
         },
-//      serviceMonitorEtcd+:
-//        {
-//          metadata+: {
-//            namespace: 'kubesphere-monitoring-system',
-//          },
-//          spec+: {
-//            endpoints: [
-//              {
-//                port: 'metrics',
-//                interval: '1m',
-//                scheme: 'https',
-//                // Prometheus Operator (and Prometheus) allow us to specify a tlsConfig. This is required as most likely your etcd metrics end points is secure.
-//                tlsConfig: {
-//                  caFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client-ca.crt',
-//                  keyFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.key',
-//                  certFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.crt',
-//                  [if $._config.etcd.serverName != null then 'serverName']: $._config.etcd.serverName,
-//                  [if $._config.etcd.insecureSkipVerify != null then 'insecureSkipVerify']: $._config.etcd.insecureSkipVerify,
-//                },
-//              },
-//            ],
-//          },
-//        },
+      serviceMonitorEtcd+:
+        {
+          metadata+: {
+            namespace: 'kubesphere-monitoring-system',
+          },
+          spec+: {
+            endpoints: [
+              {
+                port: 'metrics',
+                interval: '1m',
+                scheme: 'https',
+                // Prometheus Operator (and Prometheus) allow us to specify a tlsConfig. This is required as most likely your etcd metrics end points is secure.
+                tlsConfig: {
+                  caFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client-ca.crt',
+                  keyFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.key',
+                  certFile: '/etc/prometheus/secrets/kube-etcd-client-certs/etcd-client.crt',
+                  [if $._config.etcd.serverName != null then 'serverName']: $._config.etcd.serverName,
+                  [if $._config.etcd.insecureSkipVerify != null then 'insecureSkipVerify']: $._config.etcd.insecureSkipVerify,
+                },
+              },
+            ],
+            namespaceSelector: {
+              matchNames: [
+                'kube-system',
+              ],
+            },
+          },
+        },
 //      secretEtcdCerts: 
 //        {
 //
@@ -497,6 +418,13 @@ local kp =
               {
                 port: 'http-metrics',
                 interval: '1m',
+                metricRelabelings: [
+                  {
+                    sourceLabels: ['__name__'],
+                    regex: 'scheduler_(e2e_scheduling_latency_microseconds|scheduling_algorithm_predicate_evaluation|scheduling_algorithm_priority_evaluation|scheduling_algorithm_preemption_evaluation|scheduling_algorithm_latency_microseconds|binding_latency_microseconds|scheduling_latency_seconds)',
+                    action: 'drop',
+                  },
+                ],
               },
             ],
           },
@@ -587,12 +515,7 @@ local kp =
                   serverName: 'kubernetes',
                 },
                 bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-                metricRelabelings: [
-                  {
-                    sourceLabels: ['__name__'],
-                    regex: 'etcd_(debugging|disk|request|server).*',
-                    action: 'drop',
-                  },
+                metricRelabelings: (import 'kube-prometheus/dropping-deprecated-metrics-relabelings.libsonnet') + [
                   {
                     sourceLabels: ['__name__'],
                     regex: 'apiserver_admission_controller_admission_latencies_seconds_.*',
@@ -603,6 +526,11 @@ local kp =
                     regex: 'apiserver_admission_step_admission_latencies_seconds_.*',
                     action: 'drop',
                   },
+                  {
+                    sourceLabels: ['__name__', 'le'],
+                    regex: 'apiserver_request_duration_seconds_bucket;(0.15|0.25|0.3|0.35|0.4|0.45|0.6|0.7|0.8|0.9|1.25|1.5|1.75|2.5|3|3.5|4.5|6|7|8|9|15|25|30|50)',
+                    action: 'drop',
+                  },
                 ],
               },
             ],
@@ -611,11 +539,6 @@ local kp =
       serviceMonitorCoreDNS+:
         {
           spec+: {
-            selector+: {
-              matchLabels+: {
-                'k8s-app': 'coredns',
-              },
-            },
             endpoints: [
               {
                 port: 'metrics',
@@ -687,7 +610,7 @@ local kp =
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
   
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + $._config.prometheusAdapter.name) +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusAdapter.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName($.prometheusAdapter.clusterRole.metadata.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -700,7 +623,7 @@ local kp =
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
   
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + 'resource-metrics:system:auth-delegator') +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + 'resource-metrics:system:auth-delegator') +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName('system:auth-delegator') +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -713,7 +636,7 @@ local kp =
         local roleBinding = k.rbac.v1.roleBinding;
   
         roleBinding.new() +
-        roleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + 'resource-metrics-auth-reader') +
+        roleBinding.mixin.metadata.withName($._config.namePrefix + 'resource-metrics-auth-reader') +
         roleBinding.mixin.metadata.withNamespace('kube-system') +
         roleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         roleBinding.mixin.roleRef.withName('extension-apiserver-authentication-reader') +
@@ -756,7 +679,7 @@ local kp =
       customMetricsClusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + $._config.prometheusAdapter.customMetricsClusterRole) +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusAdapter.customMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName($._config.prometheusAdapter.customMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -768,7 +691,7 @@ local kp =
       hpaCustomMetricsClusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.prometheusAdapter.namePrefix + $._config.prometheusAdapter.hpaCustomMetricsClusterRole) +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusAdapter.hpaCustomMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName($._config.prometheusAdapter.customMetricsClusterRole) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +

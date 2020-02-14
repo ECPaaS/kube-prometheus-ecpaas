@@ -4,6 +4,7 @@ local configMapList = k3.core.v1.configMapList;
 
 (import 'grafana/grafana.libsonnet') +
 (import 'kube-state-metrics/kube-state-metrics.libsonnet') +
+(import 'kube-state-metrics-mixin/mixin.libsonnet') +
 (import 'node-exporter/node-exporter.libsonnet') +
 (import 'alertmanager/alertmanager.libsonnet') +
 (import 'prometheus-operator/prometheus-operator.libsonnet') +
@@ -15,6 +16,39 @@ local configMapList = k3.core.v1.configMapList;
 (import 'rules/rules.libsonnet') + {
   kubePrometheus+:: {
     namespace: k.core.v1.namespace.new($._config.namespace),
+  },
+  prometheusOperator+::
+  {
+    '0alertmanagerCustomResourceDefinition'+: {
+      spec: std.mergePatch(super.spec, {
+        preserveUnknownFields: null,
+      }),
+    },
+    '0prometheusCustomResourceDefinition'+: {
+      spec: std.mergePatch(super.spec, {
+        preserveUnknownFields: null,
+      }),
+    },
+    '0servicemonitorCustomResourceDefinition'+: {
+      spec: std.mergePatch(super.spec, {
+        preserveUnknownFields: null,
+      }),
+    },
+    '0podmonitorCustomResourceDefinition'+: {
+      spec: std.mergePatch(super.spec, {
+        preserveUnknownFields: null,
+      }),
+    },
+    '0prometheusruleCustomResourceDefinition'+: {
+      spec: std.mergePatch(super.spec, {
+        preserveUnknownFields: null,
+      }),
+    },
+    '0thanosrulerCustomResourceDefinition'+: {
+      spec: std.mergePatch(super.spec, {
+        preserveUnknownFields: null,
+      }),
+    },
   },
   grafana+:: {
     dashboardDefinitions: configMapList.new(super.dashboardDefinitions),
@@ -45,7 +79,7 @@ local configMapList = k3.core.v1.configMapList;
     namespace: 'default',
 
     versions+:: {
-      grafana: '6.4.3',
+      grafana: '6.6.0',
     },
 
     tlsCipherSuites: [
@@ -77,8 +111,8 @@ local configMapList = k3.core.v1.configMapList;
       // 'TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305',  // TODO: Might not work with h2
     ],
 
-    cadvisorSelector: 'job="kubelet"',
-    kubeletSelector: 'job="kubelet"',
+    cadvisorSelector: 'job="kubelet", metrics_path="/metrics/cadvisor"',
+    kubeletSelector: 'job="kubelet", metrics_path="/metrics"',
     kubeStateMetricsSelector: 'job="kube-state-metrics"',
     nodeExporterSelector: 'job="node-exporter"',
     notKubeDnsSelector: 'job!="kube-dns"',
@@ -114,6 +148,10 @@ local configMapList = k3.core.v1.configMapList;
       'kube-rbac-proxy': {
         requests: { cpu: '10m', memory: '20Mi' },
         limits: { cpu: '20m', memory: '40Mi' },
+      },
+      'kube-state-metrics': {
+        requests: { cpu: '100m', memory: '150Mi' },
+        limits: { cpu: '100m', memory: '150Mi' },
       },
       'node-exporter': {
         requests: { cpu: '102m', memory: '180Mi' },

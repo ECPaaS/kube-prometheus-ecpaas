@@ -4,7 +4,7 @@
       "name": "etcd-mixin",
       "source": {
         "git": {
-          "remote": "https://github.com/coreos/etcd",
+          "remote": "https://github.com/kubesphere/etcd",
           "subdir": "Documentation/etcd-mixin"
         }
       },
@@ -30,8 +30,8 @@
           "subdir": "grafana-builder"
         }
       },
-      "version": "e59d64a96a73e65ba53ba7fe05c9598974cc4a52",
-      "sum": "ELsYwK+kGdzX1mee2Yy+/b2mdO4Y503BOCDkFzwmGbE="
+      "version": "7ac7da1a0fe165b68cdb718b2521b560d51bd1f4",
+      "sum": "slxrtftVDiTlQK22ertdfrg4Epnq97gdrLI63ftUfaE="
     },
     {
       "name": "grafonnet",
@@ -41,8 +41,8 @@
           "subdir": "grafonnet"
         }
       },
-      "version": "69bc267211790a1c3f4ea6e6211f3e8ffe22f987",
-      "sum": "BjHfWzqSAgtAKEVD6ipoYOkb8XT5wSBIboY4ZLwhlOU="
+      "version": "c459106d2d2b583dd3a83f6c75eb52abee3af764",
+      "sum": "CeM3LRgUCUJTolTdMnerfMPGYmhClx7gX5ajrQVEY2Y="
     },
     {
       "name": "ksonnet",
@@ -65,15 +65,37 @@
       "version": ""
     },
     {
+      "name": "kube-state-metrics",
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubernetes/kube-state-metrics",
+          "subdir": "jsonnet/kube-state-metrics"
+        }
+      },
+      "version": "2148cb9bd5ba51d3911a93c4d61ddf084999f8c7",
+      "sum": "a+rigolTUlmpxlwu2hxnPvZ50Cg5WYuuC7irTma5Xbo="
+    },
+    {
+      "name": "kube-state-metrics-mixin",
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubernetes/kube-state-metrics",
+          "subdir": "jsonnet/kube-state-metrics-mixin"
+        }
+      },
+      "version": "2148cb9bd5ba51d3911a93c4d61ddf084999f8c7",
+      "sum": "E1GGavnf9PCWBm4WVrxWnc0FIj72UcbcweqGioWrOdU="
+    },
+    {
       "name": "kubernetes-mixin",
       "source": {
         "git": {
-          "remote": "https://github.com/kubernetes-monitoring/kubernetes-mixin",
+          "remote": "https://github.com/kubesphere/kubernetes-mixin",
           "subdir": ""
         }
       },
-      "version": "aed8a758f7b05f21a6e980e55bd1b258974e0b1a",
-      "sum": "QuSfzSu1C61S3uTJr2jqKWD7fICet+5kNUOBOjR+NgU="
+      "version": "a8b634b80df3d330a8bedd85bac133aeeca8b63d",
+      "sum": "8YIEOOlm1W+tHTC1NRHqkoEOeTBLRa/iBxzm7mQ7MMk="
     },
     {
       "name": "node-mixin",
@@ -83,8 +105,8 @@
           "subdir": "docs/node-mixin"
         }
       },
-      "version": "9f49fff79ef85fcebb69289622150e6d5346528b",
-      "sum": "HKeo0VuyVvuQ0otNR4dmKJ+PSRwugFjr6jNqFU2O7ZA="
+      "version": "92ea3c6a3f0ea2d1d55de168e65037e2313f9940",
+      "sum": "7vEamDTP9AApeiF4Zu9ZyXzDIs3rYHzwf9k7g8X+wsg="
     },
     {
       "name": "prometheus",
@@ -94,8 +116,8 @@
           "subdir": "documentation/prometheus-mixin"
         }
       },
-      "version": "b05b5f9a300b0209689c06d70f676291f23774c4",
-      "sum": "/rff4P9OLzZ1QnaNBC/00KVHcUxCis4vi6NzK7itR4s="
+      "version": "1c321ed047ac57e34688e40a55349c9dfe2b72c8",
+      "sum": "u1YS9CVuBTcw2vks0PZbLb1gtlI/7bVGDVBZsjWFLTw="
     },
     {
       "name": "prometheus-operator",
@@ -105,8 +127,8 @@
           "subdir": "jsonnet/prometheus-operator"
         }
       },
-      "version": "908ee0372a9ac2c6574d589fdc56a4f3cb5f12d1",
-      "sum": "L1ZFTEYXOqNH7UFnzYQ6b/0V909jq+A1twzfSwh8juE="
+      "version": "89f35ef22db0dc24c523bf8be473bcbcf9ac81f6",
+      "sum": "KCO153lAOWmWfoj3rQGhLB+8UmyvQ2Bghu/ewDqVum4="
     },
     {
       "name": "promgrafonnet",
@@ -116,8 +138,19 @@
           "subdir": "lib/promgrafonnet"
         }
       },
-      "version": "15ddfa20a6921ffbd43172eb54f6bdc1bcf8d3d3",
-      "sum": "WWqztIaRjxYRf14RnQfhZD+E6qMz3bRPyh7+qX2X3NA="
+      "version": "b2d7f762bd22be3ba5e7d54a1fcecfe1092f214b",
+      "sum": "VhgBM39yv0f4bKv8VfGg4FXkg573evGDRalip9ypKbc="
+    },
+    {
+      "name": "slo-libsonnet",
+      "source": {
+        "git": {
+          "remote": "https://github.com/metalmatze/slo-libsonnet",
+          "subdir": "slo-libsonnet"
+        }
+      },
+      "version": "437c402c5f3ad86c3c16db8471f1649284fef0ee",
+      "sum": "2Zcyku1f558VrUpMaJnI78fahDksPLcS1idmxxwcQ7Q="
     }
   ]
 }

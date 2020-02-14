@@ -17,6 +17,7 @@ package e2e
 import (
 	"log"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -57,23 +58,22 @@ func testMain(m *testing.M) int {
 }
 
 func TestQueryPrometheus(t *testing.T) {
-	t.Parallel()
 	queries := []struct {
 		query   string
 		expectN int
 	}{
 		{
-			// 	query:   `up{job="node-exporter"} == 1`,
-			// 	expectN: 1,
-			// }, {
+			query:   `up{job="node-exporter"} == 1`,
+			expectN: 1,
+		}, {
 			// 	query:   `up{job="kubelet"} == 1`,
 			// 	expectN: 1,
 			// }, {
 			query:   `up{job="apiserver"} == 1`,
 			expectN: 1,
-			// }, {
-			// 	query:   `up{job="kube-state-metrics"} == 1`,
-			// 	expectN: 1,
+		}, {
+			query:   `up{job="kube-state-metrics"} == 1`,
+			expectN: 1,
 		}, {
 			query:   `up{job="prometheus-k8s"} == 1`,
 			expectN: 1,
@@ -114,5 +114,27 @@ func TestQueryPrometheus(t *testing.T) {
 	})
 	if err != nil {
 		t.Fatal(err)
+	}
+}
+
+func TestDroppedMetrics(t *testing.T) {
+	// query metadata for all metrics and their metadata
+	md, err := promClient.metadata("{job=~\".+\"}")
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, k := range md.Data {
+		// check if the metric' help text contains Deprecated
+		if strings.Contains(k.Help, "Deprecated") {
+			// query prometheus for the Deprecated metric
+			n, err := promClient.query(k.Metric)
+			if err != nil {
+				log.Fatal(err)
+			}
+			if n > 0 {
+				t.Fatalf("deprecated metric with name: %s and help text: %s exists.", k.Metric, k.Help)
+			}
+		}
+
 	}
 }

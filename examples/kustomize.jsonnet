@@ -452,7 +452,7 @@ local kp =
                   // Drop unused metrics
                   {
                     sourceLabels: ['__name__'],
-                    regex: 'kubelet_node_name|kubelet_running_container_count|kubelet_running_pod_count|kubelet_volume_stats.*',
+                    regex: 'kubelet_node_name|kubelet_running_container_count|kubelet_running_pod_count|kubelet_volume_stats.*|kubelet_pleg_relist_duration_seconds_.+',
                     action: 'keep',
                   },
                 ],

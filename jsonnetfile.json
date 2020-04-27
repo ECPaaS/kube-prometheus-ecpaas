@@ -1,35 +1,41 @@
 {
+  "version": 1,
   "dependencies": [
     {
-      "name": "etcd-mixin",
       "source": {
         "git": {
           "remote": "https://github.com/kubesphere/etcd",
           "subdir": "Documentation/etcd-mixin"
         }
       },
-      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e",
-      "sum": "Bnd9hYM0+w4yP5YA+Z9Mn4jSYOOxwXEvulnqsIQlbnU="
+      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e"
     },
     {
-      "name": "kube-prometheus",
-      "source": {
-        "local": {
-          "directory": "jsonnet/kube-prometheus"
-        }
-      },
-      "version": ""
-    },
-    {
-      "name": "kubernetes-mixin",
       "source": {
         "git": {
           "remote": "https://github.com/kubesphere/kubernetes-mixin",
           "subdir": ""
         }
       },
-      "version": "fa5dfb987cb4407b651f139762329d8e992e351f",
-      "sum": "cid8IwM4Qe8E6S1af1RkrNakmUx4Y5IFUB8AWhQQhjo="
+      "version": "cf0e3cb13094175319d8c2856eb554f957119b1b"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubesphere/kubernetes-mixin",
+          "subdir": "lib/promgrafonnet"
+        }
+      },
+      "version": "cf0e3cb13094175319d8c2856eb554f957119b1b"
+    },
+    {
+      "source": {
+        "local": {
+          "directory": "jsonnet/kube-prometheus"
+        }
+      },
+      "version": ""
     }
-  ]
+  ],
+  "legacyImports": true
 }

@@ -16,7 +16,8 @@ spec:
         app: grafana
     spec:
       containers:
-      - image: grafana/grafana:6.6.0
+      - env: []
+        image: grafana/grafana:6.6.0
         name: grafana
         ports:
         - containerPort: 3000

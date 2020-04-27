@@ -24,6 +24,8 @@ This stack is meant for cluster monitoring, so it is pre-configured to collect m
   - [Table of contents](#table-of-contents)
   - [Prerequisites](#prerequisites)
     - [minikube](#minikube)
+  - [Compatibility](#compatibility)
+    - [Kubernetes compatibility matrix](#kubernetes-compatibility-matrix)
   - [Quickstart](#quickstart)
     - [Access the dashboards](#access-the-dashboards)
   - [Customizing Kube-Prometheus](#customizing-kube-prometheus)
@@ -44,7 +46,7 @@ This stack is meant for cluster monitoring, so it is pre-configured to collect m
     - [node-exporter DaemonSet namespace](#node-exporter-daemonset-namespace)
     - [Alertmanager configuration](#alertmanager-configuration)
     - [Adding additional namespaces to monitor](#adding-additional-namespaces-to-monitor)
-      - [Defining the ServiceMonitor for each addional Namespace](#defining-the-servicemonitor-for-each-addional-namespace)
+      - [Defining the ServiceMonitor for each additional Namespace](#defining-the-servicemonitor-for-each-additional-namespace)
     - [Static etcd configuration](#static-etcd-configuration)
     - [Pod Anti-Affinity](#pod-anti-affinity)
     - [Customizing Prometheus alerting/recording rules and Grafana dashboards](#customizing-prometheus-alertingrecording-rules-and-grafana-dashboards)
@@ -74,7 +76,7 @@ This adapter is an Extension API Server and Kubernetes needs to be have this fea
 To try out this stack, start [minikube](https://github.com/kubernetes/minikube) with the following command:
 
 ```shell
-$ minikube delete && minikube start --kubernetes-version=v1.16.0 --memory=6g --bootstrapper=kubeadm --extra-config=kubelet.authentication-token-webhook=true --extra-config=kubelet.authorization-mode=Webhook --extra-config=scheduler.address=0.0.0.0 --extra-config=controller-manager.address=0.0.0.0
+$ minikube delete && minikube start --kubernetes-version=v1.18.1 --memory=6g --bootstrapper=kubeadm --extra-config=kubelet.authentication-token-webhook=true --extra-config=kubelet.authorization-mode=Webhook --extra-config=scheduler.address=0.0.0.0 --extra-config=controller-manager.address=0.0.0.0
 ```
 
 The kube-prometheus stack includes a resource metrics API server, so the metrics-server addon is not necessary. Ensure the metrics-server addon is disabled on minikube:
@@ -83,9 +85,22 @@ The kube-prometheus stack includes a resource metrics API server, so the metrics
 $ minikube addons disable metrics-server
 ```
 
+## Compatibility
+
+### Kubernetes compatibility matrix
+
+The following versions are supported and work as we test against these versions in their respective branches. But note that other versions might work!
+
+| kube-prometheus stack | Kubernetes 1.14 | Kubernetes 1.15 | Kubernetes 1.16 | Kubernetes 1.17 | Kubernetes 1.18 |
+|-----------------------|-----------------|-----------------|-----------------|-----------------|-----------------|
+| `release-0.3`         | ✔              | ✔              | ✔              | ✔              | ✗
+| `release-0.4`         | ✗              | ✗              | ✔              | ✔              | ✗
+| `release-0.5`         | ✗              | ✗              | ✗              | ✔              | ✔
+| `HEAD`                | ✗              | ✗              | ✗              | ✗              | ✔
+
 ## Quickstart
 
->Note: For versions before Kubernetes v1.14.0 use the release-0.1 branch instead of master.
+>Note: For versions before Kubernetes v1.18.z refer to the [Kubernetes compatibility matrix](#kubernetes-compatibility-matrix) in order to choose a compatible branch.
 
 This project is intended to be used as a library (i.e. the intent is not for you to create your own modified copy of this repository).
 
@@ -100,7 +115,7 @@ kubectl create -f manifests/
 ```
 
 We create the namespace and CustomResourceDefinitions first to avoid race conditions when deploying the monitoring components.
-Alternatively, the resources in both folders can be applied with a single command 
+Alternatively, the resources in both folders can be applied with a single command
 `kubectl create -f manifests/setup -f manifests`, but it may be necessary to run the command multiple times for all components to
 be created successfullly.
 
@@ -154,12 +169,12 @@ Install this library in your own project with [jsonnet-bundler](https://github.c
 $ mkdir my-kube-prometheus; cd my-kube-prometheus
 $ jb init  # Creates the initial/empty `jsonnetfile.json`
 # Install the kube-prometheus dependency
-$ jb install github.com/coreos/kube-prometheus/jsonnet/kube-prometheus@release-0.1 # Creates `vendor/` & `jsonnetfile.lock.json`, and fills in `jsonnetfile.json`
+$ jb install github.com/coreos/kube-prometheus/jsonnet/kube-prometheus@release-0.4 # Creates `vendor/` & `jsonnetfile.lock.json`, and fills in `jsonnetfile.json`
 ```
 
 > `jb` can be installed with `go get github.com/jsonnet-bundler/jsonnet-bundler/cmd/jb`
 
-> An e.g. of how to install a given version of this library: `jb install github.com/coreos/kube-prometheus/jsonnet/kube-prometheus@release-0.1`
+> An e.g. of how to install a given version of this library: `jb install github.com/coreos/kube-prometheus/jsonnet/kube-prometheus@release-0.4`
 
 In order to update the kube-prometheus dependency, simply use the jsonnet-bundler update functionality:
 ```shell
@@ -174,6 +189,8 @@ e.g. of how to compile the manifests: `./build.sh example.jsonnet`
 
 Here's [example.jsonnet](example.jsonnet):
 
+> Note: some of the following components must be configured beforehand. See [configuration](#configuration) and [customization-examples](#customization-examples).
+
 [embedmd]:# (example.jsonnet)
 ```jsonnet
 local kp =
@@ -184,6 +201,7 @@ local kp =
   // (import 'kube-prometheus/kube-prometheus-node-ports.libsonnet') +
   // (import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
   // (import 'kube-prometheus/kube-prometheus-thanos-sidecar.libsonnet') +
+  // (import 'kube-prometheus/kube-prometheus-custom-metrics.libsonnet') +
   {
     _config+:: {
       namespace: 'monitoring',
@@ -218,6 +236,9 @@ set -x
 # only exit with zero if all commands of the pipeline exit successfully
 set -o pipefail
 
+# Make sure to use project tooling
+PATH="$(pwd)/tmp/bin:${PATH}"
+
 # Make sure to start with a clean 'manifests' dir
 rm -rf manifests
 mkdir -p manifests/setup
@@ -240,7 +261,7 @@ Now simply use `kubectl` to install Prometheus and Grafana as per your configura
 $ kubectl apply -f manifests/setup
 $ kubectl apply -f manifests/
 ```
-Alternatively, the resources in both folders can be applied with a single command 
+Alternatively, the resources in both folders can be applied with a single command
 `kubectl apply -Rf manifests`, but it may be necessary to run the command multiple times for all components to
 be created successfullly.
 
@@ -276,7 +297,7 @@ Once updated, just follow the instructions under "Compiling" and "Apply the kube
 
 ## Configuration
 
-Jsonnet has the concept of hidden fields. These are fields, that are not going to be rendered in a result. This is used to configure the kube-prometheus components in jsonnet. In the example jsonnet code of the above [Usage section](#Usage), you can see an example of this, where the `namespace` is being configured to be `monitoring`. In order to not override the whole object, use the `+::` construct of jsonnet, to merge objects, this way you can override individual settings, but retain all other settings and defaults.
+Jsonnet has the concept of hidden fields. These are fields, that are not going to be rendered in a result. This is used to configure the kube-prometheus components in jsonnet. In the example jsonnet code of the above [Customizing Kube-Prometheus section](#customizing-kube-prometheus), you can see an example of this, where the `namespace` is being configured to be `monitoring`. In order to not override the whole object, use the `+::` construct of jsonnet, to merge objects, this way you can override individual settings, but retain all other settings and defaults.
 
 These are the available fields with their respective default values:
 ```
@@ -566,11 +587,11 @@ local kp = (import 'kube-prometheus/kube-prometheus.libsonnet') + {
 { ['grafana-' + name]: kp.grafana[name] for name in std.objectFields(kp.grafana) }
 ```
 
-#### Defining the ServiceMonitor for each addional Namespace
+#### Defining the ServiceMonitor for each additional Namespace
 
 In order to Prometheus be able to discovery and scrape services inside the additional namespaces specified in previous step you need to define a ServiceMonitor resource.
 
-> Typically it is up to the users of a namespace to provision the ServiceMonitor resource, but in case you want to generate it with the same tooling as the rest of the cluster monitoring infrastructure, this is a guide on how to achieve this. 
+> Typically it is up to the users of a namespace to provision the ServiceMonitor resource, but in case you want to generate it with the same tooling as the rest of the cluster monitoring infrastructure, this is a guide on how to achieve this.
 
 You can define ServiceMonitor resources in your `jsonnet` spec. See the snippet bellow:
 
@@ -656,9 +677,10 @@ Should the Prometheus `/targets` page show kubelet targets, but not able to succ
 
 As described in the [Prerequisites](#prerequisites) section, in order to retrieve metrics from the kubelet token authentication and authorization must be enabled. Some Kubernetes setup tools do not enable this by default.
 
-If you are using Google's GKE product, see [cAdvisor support](docs/GKE-cadvisor-support.md).
+- If you are using Google's GKE product, see [cAdvisor support](docs/GKE-cadvisor-support.md).
+- If you are using AWS EKS, see [AWS EKS CNI support](docs/EKS-cni-support.md).
+- If you are using Weave Net, see [Weave Net support](docs/weave-net-support.md).
 
-If you are using AWS EKS, see [AWS EKS CNI support](docs/EKS-cni-support.md)
 #### Authentication problem
 
 The Prometheus `/targets` page will show the kubelet job with the error `403 Unauthorized`, when token authentication is not enabled. Ensure, that the `--authentication-token-webhook=true` flag is enabled on all kubelet configurations.
@@ -697,5 +719,5 @@ the following process:
 2. Commit your changes (This is currently necessary due to our vendoring
    process. This is likely to change in the future).
 3. Update the pinned kube-prometheus dependency in `jsonnetfile.lock.json`: `jb update`
-3. Generate dependent `*.yaml` files: `make generate-in-docker`
+3. Generate dependent `*.yaml` files: `make generate`
 4. Commit the generated changes.

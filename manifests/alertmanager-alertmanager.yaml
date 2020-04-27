@@ -20,7 +20,7 @@ spec:
           - kubesphere-monitoring-system
           topologyKey: kubernetes.io/hostname
         weight: 100
-  baseImage: kubesphere/alertmanager
+  image: kubesphere/alertmanager:v0.20.0
   nodeSelector:
     kubernetes.io/os: linux
   replicas: 3

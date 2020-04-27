@@ -5,9 +5,7 @@ local kp =
 //(import 'kube-prometheus/ksm-autoscaler/ksm-autoscaler.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-strip-limits.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-anti-affinity.libsonnet') +
-  (import 'kube-prometheus/kube-prometheus-node-affinity.libsonnet') +
-  // (import 'kube-prometheus/kube-prometheus-thanos-sidecar.libsonnet') +
-  (import 'kube-prometheus/kube-prometheus-custom-metrics.libsonnet') +
+  (import 'kube-prometheus/kube-prometheus-node-affinity.libsonnet')
   {
     _config+:: {
       namespace: 'kubesphere-monitoring-system',
@@ -16,14 +14,14 @@ local kp =
       versions+:: {
         prometheus: "v2.15.2",
         alertmanager: "v0.20.0",
-        kubeStateMetrics: "1.9.5",
+        kubeStateMetrics: "v1.9.4",
         kubeRbacProxy: "v0.4.1",
         addonResizer: "1.8.4",
         nodeExporter: "ks-v0.18.1", 
-        prometheusOperator: 'v0.38.1',
+        prometheusOperator: 'v0.36.0',
         configmapReloader: 'v0.3.0',
-        prometheusConfigReloader: 'v0.38.1',
-        prometheusAdapter: 'v0.5.0',
+        prometheusConfigReloader: 'v0.36.0',
+        prometheusAdapter: 'v0.4.1',
         thanos: "v0.10.0",
         clusterVerticalAutoscaler: "1.0.0"
       },
@@ -81,7 +79,7 @@ local kp =
             target_match_re: {
               severity: 'warning|info',
             },
-            equal: ['namespace', 'alertname'],
+            equal: ['alertname', 'namespace'],
           }, {
             source_match: {
               severity: 'warning',
@@ -89,10 +87,10 @@ local kp =
             target_match_re: {
               severity: 'info',
             },
-            equal: ['namespace', 'alertname'],
+            equal: ['alertname', 'namespace'],
           }],
           route+: {
-            group_by: ['namespace', 'alertname'],
+            group_by: ['alertname', 'namespace'],
           },
         },
       },
@@ -119,47 +117,65 @@ local kp =
         rules: $.prometheusEtcdRules + $.prometheusEtcdAlerts,
       },
       prometheusAdapter+:: {
-        config: {
-          resourceRules: {
-            cpu: {
-              containerQuery: 'sum(irate(container_cpu_usage_seconds_total{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}[5m])) by (<<.GroupBy>>)',
-              nodeQuery: 'sum(irate(node_cpu_seconds_total{mode="used"}[5m]) * on(namespace, pod) group_left(node) node_namespace_pod:kube_pod_info:{<<.LabelMatchers>>}) by (<<.GroupBy>>)',
-              resources: {
-                overrides: {
-                  node: {
-                    resource: 'node'
-                  },
-                  namespace: {
-                    resource: 'namespace'
-                  },
-                  pod: {
-                    resource: 'pod'
-                  },
-                },
-              },
-              containerLabel: 'container'
-            },
-            memory: {
-              containerQuery: 'sum(container_memory_working_set_bytes{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}) by (<<.GroupBy>>)',
-              nodeQuery: 'sum(node_memory_MemTotal_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_MemFree_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_Cached_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_Buffers_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_SReclaimable_bytes{job="node-exporter",<<.LabelMatchers>>}) by (<<.GroupBy>>)',
-              resources: {
-                overrides: {
-                  instance: {
-                    resource: 'node'
-                  },
-                  namespace: {
-                    resource: 'namespace'
-                  },
-                  pod: {
-                    resource: 'pod'
-                  },
-                },
-              },
-              containerLabel: 'container'
-            },
-            window: '5m',
-          },
-        }
+        customMetricsClusterRole: 'custom-metrics-server-resources',
+        hpaCustomMetricsClusterRole: 'hpa-controller-custom-metrics',
+        hpaServiceAccount: 'horizontal-pod-autoscaler',
+        hpaNameSpace: 'kube-system',
+        config: |||
+          rules:
+          - seriesQuery: '{namespace!="",__name__!~"^container_.*"}'
+            seriesFilters:
+            - isNot: .*_total$
+            resources:
+              template: <<.Resource>>
+            name:
+              matches: ""
+              as: ""
+            metricsQuery: sum(<<.Series>>{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+          - seriesQuery: '{namespace!="",__name__!~"^container_.*"}'
+            seriesFilters:
+            - isNot: .*_seconds_total
+            resources:
+              template: <<.Resource>>
+            name:
+              matches: ^(.*)_total$
+              as: ""
+            metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)
+          - seriesQuery: '{namespace!="",__name__!~"^container_.*"}'
+            seriesFilters: []
+            resources:
+              template: <<.Resource>>
+            name:
+              matches: ^(.*)_seconds_total$
+              as: ""
+            metricsQuery: sum(rate(<<.Series>>{<<.LabelMatchers>>}[2m])) by (<<.GroupBy>>)
+          resourceRules:
+            cpu:
+              containerQuery: sum(irate(container_cpu_usage_seconds_total{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}[5m])) by (<<.GroupBy>>)
+              nodeQuery: sum(irate(node_cpu_seconds_total{mode="used"}[5m]) * on(namespace, pod) group_left(node) node_namespace_pod:kube_pod_info:{<<.LabelMatchers>>}) by (<<.GroupBy>>)
+              resources:
+                overrides:
+                  node:
+                    resource: node
+                  namespace:
+                    resource: namespace
+                  pod:
+                    resource: pod
+              containerLabel: container
+            memory:
+              containerQuery: sum(container_memory_working_set_bytes{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}) by (<<.GroupBy>>)
+              nodeQuery: sum(node_memory_MemTotal_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_MemFree_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_Cached_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_Buffers_bytes{job="node-exporter",<<.LabelMatchers>>} - node_memory_SReclaimable_bytes{job="node-exporter",<<.LabelMatchers>>}) by (<<.GroupBy>>)
+              resources:
+                overrides:
+                  instance:
+                    resource: node
+                  namespace:
+                    resource: namespace
+                  pod:
+                    resource: pod
+              containerLabel: container
+            window: 5m
+        |||,
       },
     },
 
@@ -176,42 +192,6 @@ local kp =
           },
         },      
     }, 
-
-    kubeStateMetrics+:: {
-      serviceMonitor+:
-        {
-          spec+:{
-            endpoints: [
-              {
-                port: 'https-main',
-                scheme: 'https',
-                interval: $._config.kubeStateMetrics.scrapeInterval,
-                scrapeTimeout: $._config.kubeStateMetrics.scrapeTimeout,
-                honorLabels: true,
-                bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-                relabelings: [
-                  {
-                    regex: '(service|endpoint)',
-                    action: 'labeldrop',
-                  },
-                ],
-                tlsConfig: {
-                  insecureSkipVerify: true,
-                },
-              },
-              {
-                port: 'https-self',
-                scheme: 'https',
-                interval: $._config.kubeStateMetrics.scrapeInterval,
-                bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-                tlsConfig: {
-                  insecureSkipVerify: true,
-                },
-              },
-            ],
-          },
-        },
-    },
 
     grafana+:: {
       serviceMonitor+:
@@ -625,6 +605,102 @@ local kp =
           },
         },
       }, 
+    prometheusAdapter+:: {
+      clusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusAdapter.name) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName($.prometheusAdapter.clusterRole.metadata.name) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+      clusterRoleBindingDelegator:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + 'resource-metrics:system:auth-delegator') +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName('system:auth-delegator') +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+      roleBindingAuthReader:
+        local roleBinding = k.rbac.v1.roleBinding;
+  
+        roleBinding.new() +
+        roleBinding.mixin.metadata.withName($._config.namePrefix + 'resource-metrics-auth-reader') +
+        roleBinding.mixin.metadata.withNamespace('kube-system') +
+        roleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        roleBinding.mixin.roleRef.withName('extension-apiserver-authentication-reader') +
+        roleBinding.mixin.roleRef.mixinInstance({ kind: 'Role' }) +
+        roleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+      customMetricsApiService:
+        {
+          apiVersion: 'apiregistration.k8s.io/v1',
+          kind: 'APIService',
+          metadata: {
+            name: 'v1beta1.custom.metrics.k8s.io',
+          },
+          spec: {
+            service: {
+              name: $.prometheusAdapter.service.metadata.name,
+              namespace: $._config.namespace,
+            },
+            group: 'custom.metrics.k8s.io',
+            version: 'v1beta1',
+            insecureSkipTLSVerify: true,
+            groupPriorityMinimum: 100,
+            versionPriority: 100,
+          },
+        },
+      customMetricsClusterRole:
+        local clusterRole = k.rbac.v1.clusterRole;
+        local policyRule = clusterRole.rulesType;
+        local rules =
+          policyRule.new() +
+          policyRule.withApiGroups(['custom.metrics.k8s.io']) +
+          policyRule.withResources(['*']) +
+          policyRule.withVerbs(['*']);
+        clusterRole.new() +
+        clusterRole.mixin.metadata.withName($._config.prometheusAdapter.customMetricsClusterRole) +
+        clusterRole.withRules(rules),
+      customMetricsClusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusAdapter.customMetricsClusterRole) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName($._config.prometheusAdapter.customMetricsClusterRole) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+      hpaCustomMetricsClusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusAdapter.hpaCustomMetricsClusterRole) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName($._config.prometheusAdapter.customMetricsClusterRole) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $._config.prometheusAdapter.hpaServiceAccount,
+          namespace: $._config.prometheusAdapter.hpaNameSpace,
+        }]),
+      },
   };
 
 local manifests =

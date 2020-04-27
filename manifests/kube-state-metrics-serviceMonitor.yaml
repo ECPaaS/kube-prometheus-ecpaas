@@ -3,22 +3,29 @@ kind: ServiceMonitor
 metadata:
   labels:
     app.kubernetes.io/name: kube-state-metrics
-    app.kubernetes.io/version: v1.9.4
+    app.kubernetes.io/version: 1.9.5
   name: kube-state-metrics
   namespace: kubesphere-monitoring-system
 spec:
   endpoints:
-  - honorLabels: true
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    honorLabels: true
     interval: 1m
-    port: http-metrics
+    port: https-main
     relabelings:
     - action: labeldrop
       regex: (service|endpoint)
+    scheme: https
     scrapeTimeout: 30s
-  - interval: 1m
-    port: telemetry
+    tlsConfig:
+      insecureSkipVerify: true
+  - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+    interval: 1m
+    port: https-self
+    scheme: https
+    tlsConfig:
+      insecureSkipVerify: true
   jobLabel: app.kubernetes.io/name
   selector:
     matchLabels:
       app.kubernetes.io/name: kube-state-metrics
-      app.kubernetes.io/version: v1.9.4

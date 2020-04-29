@@ -138,7 +138,7 @@
           "directory": "jsonnet/kube-prometheus"
         }
       },
-      "version": "30710cf5125ce97fe956514f370e6e6ce5c3ef91"
+      "version": ""
     }
   ],
   "legacyImports": false

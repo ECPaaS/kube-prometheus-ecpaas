@@ -12,11 +12,13 @@ require (
 	github.com/imdario/mergo v0.3.7 // indirect
 	github.com/jsonnet-bundler/jsonnet-bundler v0.3.1
 	github.com/kr/pretty v0.2.0 // indirect
-	github.com/pkg/errors v0.8.1
+	github.com/mattn/go-colorable v0.1.6 // indirect
+	github.com/pkg/errors v0.9.1
 	github.com/prometheus/client_golang v1.5.1
 	github.com/spf13/pflag v1.0.3 // indirect
 	golang.org/x/crypto v0.0.0-20190411191339-88737f569e3a // indirect
 	golang.org/x/oauth2 v0.0.0-20190402181905-9f3314589c9a // indirect
+	golang.org/x/sys v0.0.0-20200428200454-593003d681fa // indirect
 	golang.org/x/text v0.3.1-0.20181227161524-e6919f6577db // indirect
 	golang.org/x/time v0.0.0-20190308202827-9d24e82272b4 // indirect
 	gopkg.in/inf.v0 v0.9.1 // indirect

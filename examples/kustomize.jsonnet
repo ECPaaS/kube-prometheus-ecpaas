@@ -119,7 +119,7 @@ local kp =
         rules: $.prometheusEtcdRules + $.prometheusEtcdAlerts,
       },
       prometheusAdapter+:: {
-        config: {
+        config+: {
           resourceRules: {
             cpu: {
               containerQuery: 'sum(irate(container_cpu_usage_seconds_total{<<.LabelMatchers>>,container!="POD",container!="",pod!=""}[5m])) by (<<.GroupBy>>)',

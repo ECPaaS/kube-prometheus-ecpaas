@@ -89,8 +89,8 @@
           "subdir": ""
         }
       },
-      "version": "cf0e3cb13094175319d8c2856eb554f957119b1b",
-      "sum": "MJ3Z8c7og2JBgYDw4shXWyLHXMkYTMOA6cbUysn9cx8="
+      "version": "4510665f58e82093194d61011e5f86b4ff5d4c34",
+      "sum": "VcF+nD4G28vDBnxvANj8jcGhcuj74K19EIkgodc+GrU="
     },
     {
       "source": {
@@ -99,17 +99,7 @@
           "subdir": "lib/promgrafonnet"
         }
       },
-      "version": "cf0e3cb13094175319d8c2856eb554f957119b1b"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/metalmatze/slo-libsonnet",
-          "subdir": "slo-libsonnet"
-        }
-      },
-      "version": "9baab703bb8a55f990f3b6a74c80987036938f64",
-      "sum": "BQdsqFs2FwqbvgbLsPMCzDSm+cpJa933tiw4fvZYPPM="
+      "version": "4510665f58e82093194d61011e5f86b4ff5d4c34"
     },
     {
       "source": {

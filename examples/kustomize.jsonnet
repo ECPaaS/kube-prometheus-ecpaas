@@ -14,7 +14,7 @@ local kp =
       namePrefix: 'ks-',
 
       versions+:: {
-        prometheus: "v2.15.2",
+        prometheus: "v2.17.2",
         alertmanager: "v0.20.0",
         kubeStateMetrics: "1.9.5",
         kubeRbacProxy: "v0.4.1",

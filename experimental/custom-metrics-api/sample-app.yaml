@@ -50,7 +50,7 @@ spec:
           containerPort: 8080
 ---
 kind: HorizontalPodAutoscaler
-apiVersion: autoscaling/v2beta1
+apiVersion: autoscaling/v2beta2
 metadata:
   name: sample-app
 spec:
@@ -63,5 +63,8 @@ spec:
   metrics:
   - type: Pods
     pods:
-      metricName: http_requests
-      targetAverageValue: 500m
+      metric:
+        name: http_requests
+      target:
+        type: AverageValue
+        averageValue: 500m

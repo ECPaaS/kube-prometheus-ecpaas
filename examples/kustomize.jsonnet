@@ -23,7 +23,7 @@ local kp =
         prometheusOperator: 'v0.38.1',
         configmapReloader: 'v0.3.0',
         prometheusConfigReloader: 'v0.38.1',
-        prometheusAdapter: 'v0.5.0',
+        prometheusAdapter: 'v0.6.0',
         thanos: "v0.10.0",
         clusterVerticalAutoscaler: "1.0.0"
       },

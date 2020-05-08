@@ -10,7 +10,7 @@ spec:
       app: sample-app
   endpoints: 
   - port: http
-    interval: 5s
+    interval: 30s
 ---
 apiVersion: v1
 kind: Service

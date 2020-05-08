@@ -9,5 +9,11 @@ Deploy this app by running `kubectl apply -f sample-app.yaml`.
 Make the app accessible on your system, for example by using `kubectl port-forward svc/sample-app 8080`. Next you need to put some load on its http endpoints. 
 
 A tool like [hey](https://github.com/rakyll/hey) is helpful for doing so: `hey -c 20 -n 100000000 http://localhost:8080/metrics`
+```shell
+kubectl run --rm utils -it --generator=run-pod/v1 --image arunvelsriram/utils bash
+wget https://storage.googleapis.com/hey-release/hey_linux_amd64
+mv hey_linux_amd64 hey && chmod +x hey
+./hey -c 20 -n 100000000 http://sample-app.default.svc:8080/metrics
+```
 
 There is an even more detailed information on this sample app at [luxas/kubeadm-workshop](https://github.com/luxas/kubeadm-workshop#deploying-the-prometheus-operator-for-monitoring-services-in-the-cluster).

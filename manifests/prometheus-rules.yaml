@@ -461,30 +461,30 @@ spec:
   - name: kubelet.rules
     rules:
     - expr: |
-        histogram_quantile(0.99, sum(rate(kubelet_pleg_relist_duration_seconds_bucket[5m])) by (instance, le) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"})
+        histogram_quantile(0.99, sum(rate(kubelet_pleg_relist_duration_seconds_bucket[5m])) by (instance, le) * on(instance) group_left(node) kubelet_node_name{job="kubelet"})
       labels:
         quantile: "0.99"
       record: node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile
     - expr: |
-        histogram_quantile(0.9, sum(rate(kubelet_pleg_relist_duration_seconds_bucket[5m])) by (instance, le) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"})
+        histogram_quantile(0.9, sum(rate(kubelet_pleg_relist_duration_seconds_bucket[5m])) by (instance, le) * on(instance) group_left(node) kubelet_node_name{job="kubelet"})
       labels:
         quantile: "0.9"
       record: node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile
     - expr: |
-        histogram_quantile(0.5, sum(rate(kubelet_pleg_relist_duration_seconds_bucket[5m])) by (instance, le) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"})
+        histogram_quantile(0.5, sum(rate(kubelet_pleg_relist_duration_seconds_bucket[5m])) by (instance, le) * on(instance) group_left(node) kubelet_node_name{job="kubelet"})
       labels:
         quantile: "0.5"
       record: node_quantile:kubelet_pleg_relist_duration_seconds:histogram_quantile
   - name: k8s.rules
     rules:
     - expr: |
-        sum((container_cpu_usage_seconds_total{job="kubelet", metrics_path="/metrics", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"} - container_cpu_usage_seconds_total{job="kubelet", metrics_path="/metrics", image!="", container!=""} offset 90s * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) / 90) by (namespace, label_kubesphere_io_workspace)
+        sum((container_cpu_usage_seconds_total{job="kubelet", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"} - container_cpu_usage_seconds_total{job="kubelet", image!="", container!=""} offset 90s * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) / 90) by (namespace, label_kubesphere_io_workspace)
       record: namespace:container_cpu_usage_seconds_total:sum_rate
     - expr: |
-        sum(container_memory_usage_bytes{job="kubelet", metrics_path="/metrics", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, label_kubesphere_io_workspace)
+        sum(container_memory_usage_bytes{job="kubelet", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, label_kubesphere_io_workspace)
       record: namespace:container_memory_usage_bytes:sum
     - expr: |
-        sum(container_memory_working_set_bytes{job="kubelet", metrics_path="/metrics", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, label_kubesphere_io_workspace)
+        sum(container_memory_working_set_bytes{job="kubelet", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, label_kubesphere_io_workspace)
       record: namespace:container_memory_usage_bytes_wo_cache:sum
     - expr: |
         sum by (namespace, label_name) (
@@ -681,19 +681,19 @@ spec:
         max(kube_resourcequota{job="kube-state-metrics", type="used"}) by (resource, namespace) / min(kube_resourcequota{job="kube-state-metrics", type="hard"}) by (resource, namespace) *  on (namespace) group_left(label_kubesphere_io_workspace) (kube_namespace_labels{job="kube-state-metrics"})
       record: namespace:resourcequota_used:ratio
     - expr: |
-        sum (label_replace(label_join(sum(irate(container_cpu_usage_seconds_total{job="kubelet", metrics_path="/metrics", pod!="", image!=""}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
+        sum (label_replace(label_join(sum(irate(container_cpu_usage_seconds_total{job="kubelet", pod!="", image!=""}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
       record: namespace:workload_cpu_usage:sum
     - expr: |
-        sum (label_replace(label_join(sum(container_memory_usage_bytes{job="kubelet", metrics_path="/metrics", pod!="", image!=""}) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
+        sum (label_replace(label_join(sum(container_memory_usage_bytes{job="kubelet", pod!="", image!=""}) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
       record: namespace:workload_memory_usage:sum
     - expr: |
-        sum (label_replace(label_join(sum(container_memory_working_set_bytes{job="kubelet", metrics_path="/metrics", pod!="", image!=""}) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
+        sum (label_replace(label_join(sum(container_memory_working_set_bytes{job="kubelet", pod!="", image!=""}) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
       record: namespace:workload_memory_usage_wo_cache:sum
     - expr: |
-        sum (label_replace(label_join(sum(irate(container_network_transmit_bytes_total{pod!="", interface!~"^(cali.+|tunl.+|dummy.+|kube.+|flannel.+|cni.+|docker.+|veth.+|lo.*)", job="kubelet", metrics_path="/metrics"}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
+        sum (label_replace(label_join(sum(irate(container_network_transmit_bytes_total{pod!="", interface!~"^(cali.+|tunl.+|dummy.+|kube.+|flannel.+|cni.+|docker.+|veth.+|lo.*)", job="kubelet"}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
       record: namespace:workload_net_bytes_transmitted:sum_irate
     - expr: |
-        sum (label_replace(label_join(sum(irate(container_network_receive_bytes_total{pod!="", interface!~"^(cali.+|tunl.+|dummy.+|kube.+|flannel.+|cni.+|docker.+|veth.+|lo.*)", job="kubelet", metrics_path="/metrics"}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
+        sum (label_replace(label_join(sum(irate(container_network_receive_bytes_total{pod!="", interface!~"^(cali.+|tunl.+|dummy.+|kube.+|flannel.+|cni.+|docker.+|veth.+|lo.*)", job="kubelet"}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
       record: namespace:workload_net_bytes_received:sum_irate
     - expr: |
         label_replace(label_replace(sum(kube_deployment_status_replicas_unavailable{job="kube-state-metrics"}) by (deployment, namespace) / sum(kube_deployment_spec_replicas{job="kube-state-metrics"}) by (deployment, namespace) * on (namespace) group_left(label_kubesphere_io_workspace)(kube_namespace_labels{job="kube-state-metrics"}), "workload","Deployment:$1", "deployment", "(.*)"), "owner_kind","Deployment", "", "")
@@ -1095,9 +1095,9 @@ spec:
           }} free.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumefillingup
       expr: |
-        kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
+        kubelet_volume_stats_available_bytes{job="kubelet"}
           /
-        kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
+        kubelet_volume_stats_capacity_bytes{job="kubelet"}
           < 0.03
       for: 1m
       labels:
@@ -1110,12 +1110,12 @@ spec:
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubepersistentvolumefillingup
       expr: |
         (
-          kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_available_bytes{job="kubelet"}
             /
-          kubelet_volume_stats_capacity_bytes{job="kubelet", metrics_path="/metrics"}
+          kubelet_volume_stats_capacity_bytes{job="kubelet"}
         ) < 0.15
         and
-        predict_linear(kubelet_volume_stats_available_bytes{job="kubelet", metrics_path="/metrics"}[6h], 4 * 24 * 3600) < 0
+        predict_linear(kubelet_volume_stats_available_bytes{job="kubelet"}[6h], 4 * 24 * 3600) < 0
       for: 1h
       labels:
         severity: warning
@@ -1288,7 +1288,7 @@ spec:
           }} of its Pod capacity.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubelettoomanypods
       expr: |
-        max(max(kubelet_running_pod_count{job="kubelet", metrics_path="/metrics"}) by(instance) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"}) by(node) / max(kube_node_status_capacity_pods{job="kube-state-metrics"} != 1) by(node) > 0.95
+        max(max(kubelet_running_pod_count{job="kubelet"}) by(instance) * on(instance) group_left(node) kubelet_node_name{job="kubelet"}) by(node) / max(kube_node_status_capacity_pods{job="kube-state-metrics"} != 1) by(node) > 0.95
       for: 15m
       labels:
         severity: warning
@@ -1318,7 +1318,7 @@ spec:
           on node {{ $labels.node }}.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeletpodstartuplatencyhigh
       expr: |
-        histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet", metrics_path="/metrics"}[5m])) by (instance, le)) * on(instance) group_left(node) kubelet_node_name{job="kubelet", metrics_path="/metrics"} > 60
+        histogram_quantile(0.99, sum(rate(kubelet_pod_worker_duration_seconds_bucket{job="kubelet"}[5m])) by (instance, le)) * on(instance) group_left(node) kubelet_node_name{job="kubelet"} > 60
       for: 15m
       labels:
         severity: warning
@@ -1327,7 +1327,7 @@ spec:
         message: Kubelet has disappeared from Prometheus target discovery.
         runbook_url: https://github.com/kubernetes-monitoring/kubernetes-mixin/tree/master/runbook.md#alert-name-kubeletdown
       expr: |
-        absent(up{job="kubelet", metrics_path="/metrics"} == 1)
+        absent(up{job="kubelet"} == 1)
       for: 15m
       labels:
         severity: critical

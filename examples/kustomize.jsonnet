@@ -12,6 +12,8 @@ local kp =
     _config+:: {
       namespace: 'kubesphere-monitoring-system',
       namePrefix: 'ks-',
+      cadvisorSelector: 'job="kubelet"',
+      kubeletSelector: 'job="kubelet"',
 
       versions+:: {
         prometheus: "v2.17.2",
@@ -178,6 +180,17 @@ local kp =
     }, 
 
     kubeStateMetrics+:: {
+      local ksm = self,
+      clusterRoleBinding:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+    
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.kubeStateMetrics.name) +
+        clusterRoleBinding.mixin.metadata.withLabels(ksm.commonLabels) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName(ksm.name) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: ksm.name, namespace: ksm.namespace }]),
       serviceMonitor+:
         {
           spec+:{
@@ -238,7 +251,7 @@ local kp =
         clusterRoleBinding.new() +
         clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.nodeExporter.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
-        clusterRoleBinding.mixin.roleRef.withName('node-exporter') +
+        clusterRoleBinding.mixin.roleRef.withName($._config.nodeExporter.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
         clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'node-exporter', namespace: $._config.namespace }]),
       serviceMonitor+:
@@ -287,7 +300,7 @@ local kp =
         clusterRoleBinding.mixin.metadata.withLabels($._config.prometheusOperator.commonLabels) +
         clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusOperator.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
-        clusterRoleBinding.mixin.roleRef.withName('prometheus-operator') +
+        clusterRoleBinding.mixin.roleRef.withName($._config.prometheusOperator.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
         clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'prometheus-operator', namespace: $._config.namespace }]),
     },
@@ -471,10 +484,6 @@ local kp =
                     regex: '(service|endpoint)',
                     action: 'labeldrop',
                   },
-                  {
-                    sourceLabels: ['__metrics_path__'],
-                    targetLabel: 'metrics_path',
-                  },
                 ],
                 metricRelabelings: [
                   // Drop unused metrics
@@ -499,10 +508,6 @@ local kp =
                   {
                     regex: '(service|endpoint)',
                     action: 'labeldrop',
-                  },
-                  {
-                    sourceLabels: ['__metrics_path__'],
-                    targetLabel: 'metrics_path',
                   },
                 ],
                 metricRelabelings: [

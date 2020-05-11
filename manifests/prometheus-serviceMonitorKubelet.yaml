@@ -19,6 +19,9 @@ spec:
     relabelings:
     - action: labeldrop
       regex: (service|endpoint)
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
     scheme: https
     tlsConfig:
       insecureSkipVerify: true
@@ -35,6 +38,9 @@ spec:
     relabelings:
     - action: labeldrop
       regex: (service|endpoint)
+    - sourceLabels:
+      - __metrics_path__
+      targetLabel: metrics_path
     scheme: https
     tlsConfig:
       insecureSkipVerify: true

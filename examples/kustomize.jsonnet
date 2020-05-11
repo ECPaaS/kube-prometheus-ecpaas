@@ -467,6 +467,10 @@ local kp =
                     regex: '(service|endpoint)',
                     action: 'labeldrop',
                   },
+                  {
+                    sourceLabels: ['__metrics_path__'],
+                    targetLabel: 'metrics_path',
+                  },
                 ],
                 metricRelabelings: [
                   // Drop unused metrics
@@ -491,6 +495,10 @@ local kp =
                   {
                     regex: '(service|endpoint)',
                     action: 'labeldrop',
+                  },
+                  {
+                    sourceLabels: ['__metrics_path__'],
+                    targetLabel: 'metrics_path',
                   },
                 ],
                 metricRelabelings: [

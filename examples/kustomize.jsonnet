@@ -194,6 +194,10 @@ local kp =
                     regex: '(service|endpoint)',
                     action: 'labeldrop',
                   },
+                  {
+                    sourceLabels: ['label_kubesphere_io_workspace'],
+                    targetLabel: 'workspace',
+                  },
                 ],
                 tlsConfig: {
                   insecureSkipVerify: true,

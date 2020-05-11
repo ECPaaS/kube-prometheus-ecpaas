@@ -15,6 +15,9 @@ spec:
     relabelings:
     - action: labeldrop
       regex: (service|endpoint)
+    - sourceLabels:
+      - label_kubesphere_io_workspace
+      targetLabel: workspace
     scheme: https
     scrapeTimeout: 30s
     tlsConfig:

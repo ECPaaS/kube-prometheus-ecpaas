@@ -478,13 +478,13 @@ spec:
   - name: k8s.rules
     rules:
     - expr: |
-        sum((container_cpu_usage_seconds_total{job="kubelet", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"} - container_cpu_usage_seconds_total{job="kubelet", image!="", container!=""} offset 90s * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) / 90) by (namespace, label_kubesphere_io_workspace)
+        sum((container_cpu_usage_seconds_total{job="kubelet", image!="", container!=""} * on(namespace) group_left(workspace) kube_namespace_labels{job="kube-state-metrics"} - container_cpu_usage_seconds_total{job="kubelet", image!="", container!=""} offset 90s * on(namespace) group_left(workspace) kube_namespace_labels{job="kube-state-metrics"}) / 90) by (namespace, workspace)
       record: namespace:container_cpu_usage_seconds_total:sum_rate
     - expr: |
-        sum(container_memory_usage_bytes{job="kubelet", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, label_kubesphere_io_workspace)
+        sum(container_memory_usage_bytes{job="kubelet", image!="", container!=""} * on(namespace) group_left(workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, workspace)
       record: namespace:container_memory_usage_bytes:sum
     - expr: |
-        sum(container_memory_working_set_bytes{job="kubelet", image!="", container!=""} * on(namespace) group_left(label_kubesphere_io_workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, label_kubesphere_io_workspace)
+        sum(container_memory_working_set_bytes{job="kubelet", image!="", container!=""} * on(namespace) group_left(workspace) kube_namespace_labels{job="kube-state-metrics"}) by (namespace, workspace)
       record: namespace:container_memory_usage_bytes_wo_cache:sum
     - expr: |
         sum by (namespace, label_name) (
@@ -672,13 +672,13 @@ spec:
   - name: namespace.rules
     rules:
     - expr: |
-        (count(kube_pod_info{job="kube-state-metrics", node!=""}) by (namespace) - sum(kube_pod_status_phase{job="kube-state-metrics", phase="Succeeded"}) by (namespace)  - sum(kube_pod_status_ready{job="kube-state-metrics", condition="true"} * on (pod, namespace) kube_pod_status_phase{job="kube-state-metrics", phase="Running"}) by (namespace) - sum(kube_pod_container_status_waiting_reason{job="kube-state-metrics", reason="ContainerCreating"}) by (namespace)) * on (namespace) group_left(label_kubesphere_io_workspace)(kube_namespace_labels{job="kube-state-metrics"})
+        (count(kube_pod_info{job="kube-state-metrics", node!=""}) by (namespace) - sum(kube_pod_status_phase{job="kube-state-metrics", phase="Succeeded"}) by (namespace)  - sum(kube_pod_status_ready{job="kube-state-metrics", condition="true"} * on (pod, namespace) kube_pod_status_phase{job="kube-state-metrics", phase="Running"}) by (namespace) - sum(kube_pod_container_status_waiting_reason{job="kube-state-metrics", reason="ContainerCreating"}) by (namespace)) * on (namespace) group_left(workspace)(kube_namespace_labels{job="kube-state-metrics"})
       record: namespace:pod_abnormal:count
     - expr: |
-        namespace:pod_abnormal:count / (sum(kube_pod_status_phase{job="kube-state-metrics", phase!="Succeeded", namespace!=""}) by (namespace) * on (namespace) group_left(label_kubesphere_io_workspace)(kube_namespace_labels{job="kube-state-metrics"}))
+        namespace:pod_abnormal:count / (sum(kube_pod_status_phase{job="kube-state-metrics", phase!="Succeeded", namespace!=""}) by (namespace) * on (namespace) group_left(workspace)(kube_namespace_labels{job="kube-state-metrics"}))
       record: namespace:pod_abnormal:ratio
     - expr: |
-        max(kube_resourcequota{job="kube-state-metrics", type="used"}) by (resource, namespace) / min(kube_resourcequota{job="kube-state-metrics", type="hard"}) by (resource, namespace) *  on (namespace) group_left(label_kubesphere_io_workspace) (kube_namespace_labels{job="kube-state-metrics"})
+        max(kube_resourcequota{job="kube-state-metrics", type="used"}) by (resource, namespace) / min(kube_resourcequota{job="kube-state-metrics", type="hard"}) by (resource, namespace) *  on (namespace) group_left(workspace) (kube_namespace_labels{job="kube-state-metrics"})
       record: namespace:resourcequota_used:ratio
     - expr: |
         sum (label_replace(label_join(sum(irate(container_cpu_usage_seconds_total{job="kubelet", pod!="", image!=""}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
@@ -696,13 +696,13 @@ spec:
         sum (label_replace(label_join(sum(irate(container_network_receive_bytes_total{pod!="", interface!~"^(cali.+|tunl.+|dummy.+|kube.+|flannel.+|cni.+|docker.+|veth.+|lo.*)", job="kubelet"}[5m])) by (namespace, pod) * on (pod, namespace) group_left(owner_kind,owner_name) label_replace(label_join(label_replace(label_replace(kube_pod_owner{job="kube-state-metrics"},"owner_kind", "Deployment", "owner_kind", "ReplicaSet"), "owner_kind", "Pod", "owner_kind", "<none>"),"tmp",":","owner_name","pod"),"owner_name","$1","tmp","<none>:(.*)"), "workload",":","owner_kind","owner_name"), "workload","$1","workload","(Deployment:.+)-(.+)")) by (namespace, workload, owner_kind)
       record: namespace:workload_net_bytes_received:sum_irate
     - expr: |
-        label_replace(label_replace(sum(kube_deployment_status_replicas_unavailable{job="kube-state-metrics"}) by (deployment, namespace) / sum(kube_deployment_spec_replicas{job="kube-state-metrics"}) by (deployment, namespace) * on (namespace) group_left(label_kubesphere_io_workspace)(kube_namespace_labels{job="kube-state-metrics"}), "workload","Deployment:$1", "deployment", "(.*)"), "owner_kind","Deployment", "", "")
+        label_replace(label_replace(sum(kube_deployment_status_replicas_unavailable{job="kube-state-metrics"}) by (deployment, namespace) / sum(kube_deployment_spec_replicas{job="kube-state-metrics"}) by (deployment, namespace) * on (namespace) group_left(workspace)(kube_namespace_labels{job="kube-state-metrics"}), "workload","Deployment:$1", "deployment", "(.*)"), "owner_kind","Deployment", "", "")
       record: namespace:deployment_unavailable_replicas:ratio
     - expr: |
-        label_replace(label_replace(sum(kube_daemonset_status_number_unavailable{job="kube-state-metrics"}) by (daemonset, namespace) / sum(kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}) by (daemonset, namespace) * on (namespace) group_left(label_kubesphere_io_workspace)(kube_namespace_labels{job="kube-state-metrics"}) , "workload","DaemonSet:$1", "daemonset", "(.*)"), "owner_kind","DaemonSet", "", "")
+        label_replace(label_replace(sum(kube_daemonset_status_number_unavailable{job="kube-state-metrics"}) by (daemonset, namespace) / sum(kube_daemonset_status_desired_number_scheduled{job="kube-state-metrics"}) by (daemonset, namespace) * on (namespace) group_left(workspace)(kube_namespace_labels{job="kube-state-metrics"}) , "workload","DaemonSet:$1", "daemonset", "(.*)"), "owner_kind","DaemonSet", "", "")
       record: namespace:daemonset_unavailable_replicas:ratio
     - expr: |
-        label_replace(label_replace((1 - sum(kube_statefulset_status_replicas_current{job="kube-state-metrics"}) by (statefulset, namespace) / sum(kube_statefulset_replicas{job="kube-state-metrics"}) by (statefulset, namespace)) * on (namespace) group_left(label_kubesphere_io_workspace)(kube_namespace_labels{job="kube-state-metrics"}) , "workload","StatefulSet:$1", "statefulset", "(.*)"), "owner_kind","StatefulSet", "", "")
+        label_replace(label_replace((1 - sum(kube_statefulset_status_replicas_current{job="kube-state-metrics"}) by (statefulset, namespace) / sum(kube_statefulset_replicas{job="kube-state-metrics"}) by (statefulset, namespace)) * on (namespace) group_left(workspace)(kube_namespace_labels{job="kube-state-metrics"}) , "workload","StatefulSet:$1", "statefulset", "(.*)"), "owner_kind","StatefulSet", "", "")
       record: namespace:statefulset_unavailable_replicas:ratio
   - name: apiserver.rules
     rules:

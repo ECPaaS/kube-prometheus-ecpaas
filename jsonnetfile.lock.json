@@ -104,12 +104,12 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/prometheus/node_exporter",
+          "remote": "https://github.com/kubesphere/node_exporter",
           "subdir": "docs/node-mixin"
         }
       },
-      "version": "d4d2e1db98152ab6c94dc9a12a997950e0be2416",
-      "sum": "ZwrC0+4o1xD6+oPBu1p+rBXLlf6pMBD9rT8ygyl2aW0="
+      "version": "1dae8c249c7718e26ab81cbe0412fad094cf1c42",
+      "sum": "gA+559+gwB720Soq4FAdir92InOai1Y1QbjtDYA+w2w="
     },
     {
       "source": {

@@ -4,15 +4,6 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/kubesphere/etcd",
-          "subdir": "Documentation/etcd-mixin"
-        }
-      },
-      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e"
-    },
-    {
-      "source": {
-        "git": {
           "remote": "https://github.com/kubesphere/kubernetes-mixin",
           "subdir": ""
         }
@@ -27,6 +18,15 @@
         }
       },
       "version": "7e4a1a20626f02ebddb0181c2cb97e3c6110f903"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubesphere/etcd",
+          "subdir": "Documentation/etcd-mixin"
+        }
+      },
+      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e"
     },
     {
       "source": {

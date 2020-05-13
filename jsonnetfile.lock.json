@@ -89,7 +89,8 @@
           "subdir": ""
         }
       },
-      "version": "7e4a1a20626f02ebddb0181c2cb97e3c6110f903"
+      "version": "7e4a1a20626f02ebddb0181c2cb97e3c6110f903",
+      "sum": "5SkQuHkihEiPpITXZ37v55KWZnIeYJJYsjL71re4/xU="
     },
     {
       "source": {
@@ -98,7 +99,8 @@
           "subdir": "lib/promgrafonnet"
         }
       },
-      "version": "7e4a1a20626f02ebddb0181c2cb97e3c6110f903"
+      "version": "7e4a1a20626f02ebddb0181c2cb97e3c6110f903",
+      "sum": "VhgBM39yv0f4bKv8VfGg4FXkg573evGDRalip9ypKbc="
     },
     {
       "source": {
@@ -107,8 +109,8 @@
           "subdir": "docs/node-mixin"
         }
       },
-      "version": "1dae8c249c7718e26ab81cbe0412fad094cf1c42",
-      "sum": "gA+559+gwB720Soq4FAdir92InOai1Y1QbjtDYA+w2w="
+      "version": "e69448c63dd1baceb8089422faed1a5c8e0c2a79",
+      "sum": "GY5WL5ouPdmz0x/+mWfa1BPmTvkpKjQ7fC124zxQuKc="
     },
     {
       "source": {

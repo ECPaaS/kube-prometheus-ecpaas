@@ -4,24 +4,6 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/brancz/kubernetes-grafana",
-          "subdir": "grafana"
-        }
-      },
-      "version": "master"
-    },
-    {
-      "source": {
-        "git": {
-          "remote": "https://github.com/kubesphere/etcd",
-          "subdir": "Documentation/etcd-mixin"
-        }
-      },
-      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e"
-    },
-    {
-      "source": {
-        "git": {
           "remote": "https://github.com/kubesphere/kubernetes-mixin",
           "subdir": ""
         }
@@ -36,6 +18,24 @@
         }
       },
       "version": "7e4a1a20626f02ebddb0181c2cb97e3c6110f903"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/brancz/kubernetes-grafana",
+          "subdir": "grafana"
+        }
+      },
+      "version": "master"
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubesphere/etcd",
+          "subdir": "Documentation/etcd-mixin"
+        }
+      },
+      "version": "1828a2d16323d96ae123ddfc9434181dc875af0e"
     },
     {
       "source": {
@@ -81,7 +81,7 @@
           "subdir": "docs/node-mixin"
         }
       },
-      "version": "1dae8c249c7718e26ab81cbe0412fad094cf1c42"
+      "version": "e69448c63dd1baceb8089422faed1a5c8e0c2a79"
     },
     {
       "source": {

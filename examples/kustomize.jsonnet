@@ -305,6 +305,91 @@ local kp =
         clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'prometheus-operator', namespace: $._config.namespace }]),
     },
 
+    prometheusAdapter+:: {
+      clusterRole:
+        local clusterRole = k.rbac.v1.clusterRole;
+        local policyRule = clusterRole.rulesType;
+  
+        local rules =
+          policyRule.new() +
+          policyRule.withApiGroups(['']) +
+          policyRule.withResources(['nodes', 'namespaces', 'pods', 'services']) +
+          policyRule.withVerbs(['get', 'list', 'watch']);
+  
+        clusterRole.new() +
+        clusterRole.mixin.metadata.withName($._config.namePrefix + $._config.prometheusAdapter.name) +
+        clusterRole.withRules(rules),
+
+      clusterRoleBindingDelegator:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + 'resource-metrics:system:auth-delegator') +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName('system:auth-delegator') +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]), 
+      roleBindingAuthReader:
+        local roleBinding = k.rbac.v1.roleBinding;
+  
+        roleBinding.new() +
+        roleBinding.mixin.metadata.withName($._config.namePrefix + 'resource-metrics-auth-reader') +
+        roleBinding.mixin.metadata.withNamespace('kube-system') +
+        roleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        roleBinding.mixin.roleRef.withName('extension-apiserver-authentication-reader') +
+        roleBinding.mixin.roleRef.mixinInstance({ kind: 'Role' }) +
+        roleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+      customMetricsClusterRoleServerResources:
+        local clusterRole = k.rbac.v1.clusterRole;
+        local policyRule = clusterRole.rulesType;
+  
+        local rules =
+          policyRule.new() +
+          policyRule.withApiGroups(['custom.metrics.k8s.io']) +
+          policyRule.withResources(['*']) +
+          policyRule.withVerbs(['*']);
+  
+        clusterRole.new() +
+        clusterRole.mixin.metadata.withName($._config.namePrefix + 'custom-metrics-server-resources') +
+        clusterRole.withRules(rules),
+  
+      customMetricsClusterRoleBindingServerResources:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName($.prometheusAdapter.customMetricsClusterRoleServerResources.metadata.name) +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName($.prometheusAdapter.customMetricsClusterRoleServerResources.metadata.name) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: $.prometheusAdapter.serviceAccount.metadata.name,
+          namespace: $._config.namespace,
+        }]),
+  
+      customMetricsClusterRoleBindingHPA:
+        local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
+  
+        clusterRoleBinding.new() +
+        clusterRoleBinding.mixin.metadata.withName('hpa-controller-custom-metrics') +
+        clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
+        clusterRoleBinding.mixin.roleRef.withName($.prometheusAdapter.customMetricsClusterRoleServerResources.metadata.name) +
+        clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
+        clusterRoleBinding.withSubjects([{
+          kind: 'ServiceAccount',
+          name: 'horizontal-pod-autoscaler',
+          namespace: 'kube-system',
+        }]),
+    },
+
     prometheus+:: {
       serviceKubeScheduler:
         local service = k.core.v1.service;

@@ -15,7 +15,10 @@ spec:
     relabelings:
     - action: labeldrop
       regex: (service|endpoint)
-    - sourceLabels:
+    - action: replace
+      regex: (.*)
+      replacement: $1
+      sourceLabels:
       - label_kubesphere_io_workspace
       targetLabel: workspace
     scheme: https

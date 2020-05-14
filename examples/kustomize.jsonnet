@@ -208,6 +208,9 @@ local kp =
                     action: 'labeldrop',
                   },
                   {
+                    action: 'replace',
+                    regex: '(.*)',
+                    replacement: '$1',
                     sourceLabels: ['label_kubesphere_io_workspace'],
                     targetLabel: 'workspace',
                   },

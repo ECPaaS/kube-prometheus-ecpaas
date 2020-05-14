@@ -202,17 +202,19 @@ local kp =
                 scrapeTimeout: $._config.kubeStateMetrics.scrapeTimeout,
                 honorLabels: true,
                 bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
-                relabelings: [
-                  {
-                    regex: '(service|endpoint)',
-                    action: 'labeldrop',
-                  },
+                metricRelabelings: [
                   {
                     action: 'replace',
                     regex: '(.*)',
                     replacement: '$1',
                     sourceLabels: ['label_kubesphere_io_workspace'],
                     targetLabel: 'workspace',
+                  },
+                ],
+                relabelings: [
+                  {
+                    regex: '(service|endpoint)',
+                    action: 'labeldrop',
                   },
                 ],
                 tlsConfig: {

@@ -11,16 +11,17 @@ spec:
   - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
     honorLabels: true
     interval: 1m
-    port: https-main
-    relabelings:
-    - action: labeldrop
-      regex: (service|endpoint)
+    metricRelabelings:
     - action: replace
       regex: (.*)
       replacement: $1
       sourceLabels:
       - label_kubesphere_io_workspace
       targetLabel: workspace
+    port: https-main
+    relabelings:
+    - action: labeldrop
+      regex: (service|endpoint)
     scheme: https
     scrapeTimeout: 30s
     tlsConfig:

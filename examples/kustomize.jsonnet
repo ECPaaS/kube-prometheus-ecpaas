@@ -11,7 +11,7 @@ local kp =
   {
     _config+:: {
       namespace: 'kubesphere-monitoring-system',
-      namePrefix: 'ks-',
+      namePrefix: 'kubesphere-',
       cadvisorSelector: 'job="kubelet"',
       kubeletSelector: 'job="kubelet"',
 
@@ -106,11 +106,11 @@ local kp =
       },
 
       nodeExporter+:: {
-        name: 'node-exporter',
+        name: $._config.namePrefix + 'node-exporter',
       },
 
       prometheusOperator+:: {
-        name: 'prometheus-operator',
+        name: $._config.namePrefix + 'prometheus-operator',
       },
       etcd+:: {
         ips: ['127.0.0.1'],
@@ -185,12 +185,135 @@ local kp =
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
     
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.kubeStateMetrics.name) +
+        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + ksm.name) +
         clusterRoleBinding.mixin.metadata.withLabels(ksm.commonLabels) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
-        clusterRoleBinding.mixin.roleRef.withName(ksm.name) +
+        clusterRoleBinding.mixin.roleRef.withName($._config.namePrefix + ksm.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
         clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: ksm.name, namespace: ksm.namespace }]),
+    
+      clusterRole:
+        local clusterRole = k.rbac.v1.clusterRole;
+        local rulesType = clusterRole.rulesType;
+    
+        local rules = [
+          rulesType.new() +
+          rulesType.withApiGroups(['']) +
+          rulesType.withResources([
+            'configmaps',
+            'secrets',
+            'nodes',
+            'pods',
+            'services',
+            'resourcequotas',
+            'replicationcontrollers',
+            'limitranges',
+            'persistentvolumeclaims',
+            'persistentvolumes',
+            'namespaces',
+            'endpoints',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['extensions']) +
+          rulesType.withResources([
+            'daemonsets',
+            'deployments',
+            'replicasets',
+            'ingresses',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['apps']) +
+          rulesType.withResources([
+            'statefulsets',
+            'daemonsets',
+            'deployments',
+            'replicasets',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['batch']) +
+          rulesType.withResources([
+            'cronjobs',
+            'jobs',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['autoscaling']) +
+          rulesType.withResources([
+            'horizontalpodautoscalers',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['authentication.k8s.io']) +
+          rulesType.withResources([
+            'tokenreviews',
+          ]) +
+          rulesType.withVerbs(['create']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['authorization.k8s.io']) +
+          rulesType.withResources([
+            'subjectaccessreviews',
+          ]) +
+          rulesType.withVerbs(['create']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['policy']) +
+          rulesType.withResources([
+            'poddisruptionbudgets',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['certificates.k8s.io']) +
+          rulesType.withResources([
+            'certificatesigningrequests',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['storage.k8s.io']) +
+          rulesType.withResources([
+            'storageclasses',
+            'volumeattachments',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['admissionregistration.k8s.io']) +
+          rulesType.withResources([
+            'mutatingwebhookconfigurations',
+            'validatingwebhookconfigurations',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['networking.k8s.io']) +
+          rulesType.withResources([
+            'networkpolicies',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+    
+          rulesType.new() +
+          rulesType.withApiGroups(['coordination.k8s.io']) +
+          rulesType.withResources([
+            'leases',
+          ]) +
+          rulesType.withVerbs(['list', 'watch']),
+        ];
+    
+        clusterRole.new() +
+        clusterRole.mixin.metadata.withName($._config.namePrefix + ksm.name) +
+        clusterRole.mixin.metadata.withLabels(ksm.commonLabels) +
+        clusterRole.withRules(rules),
+
       serviceMonitor+:
         {
           spec+:{
@@ -250,11 +373,34 @@ local kp =
     }, 
 
     nodeExporter+:: {
+      clusterRole:
+        local clusterRole = k.rbac.v1.clusterRole;
+        local policyRule = clusterRole.rulesType;
+  
+        local authenticationRole = policyRule.new() +
+                                   policyRule.withApiGroups(['authentication.k8s.io']) +
+                                   policyRule.withResources([
+                                     'tokenreviews',
+                                   ]) +
+                                   policyRule.withVerbs(['create']);
+  
+        local authorizationRole = policyRule.new() +
+                                  policyRule.withApiGroups(['authorization.k8s.io']) +
+                                  policyRule.withResources([
+                                    'subjectaccessreviews',
+                                  ]) +
+                                  policyRule.withVerbs(['create']);
+  
+        local rules = [authenticationRole, authorizationRole];
+  
+        clusterRole.new() +
+        clusterRole.mixin.metadata.withName($._config.nodeExporter.name) +
+        clusterRole.withRules(rules),
       clusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
   
         clusterRoleBinding.new() +
-        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.nodeExporter.name) +
+        clusterRoleBinding.mixin.metadata.withName($._config.nodeExporter.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName($._config.nodeExporter.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -298,12 +444,118 @@ local kp =
     }, 
 
     prometheusOperator+:: {
+      clusterRole:
+        local clusterRole = k.rbac.v1.clusterRole;
+        local policyRule = clusterRole.rulesType;
+  
+        local crdCreateRule = policyRule.new() +
+                              policyRule.withApiGroups(['apiextensions.k8s.io']) +
+                              policyRule.withResources([
+                                'customresourcedefinitions',
+                              ]) +
+                              policyRule.withVerbs(['create']);
+  
+        local crdMonitoringRule = policyRule.new() +
+                                  policyRule.withApiGroups(['apiextensions.k8s.io']) +
+                                  policyRule.withResources([
+                                    'customresourcedefinitions',
+                                  ]) +
+                                  policyRule.withResourceNames([
+                                    'alertmanagers.monitoring.coreos.com',
+                                    'podmonitors.monitoring.coreos.com',
+                                    'prometheuses.monitoring.coreos.com',
+                                    'prometheusrules.monitoring.coreos.com',
+                                    'servicemonitors.monitoring.coreos.com',
+                                    'thanosrulers.monitoring.coreos.com',
+                                  ]) +
+                                  policyRule.withVerbs(['get', 'update']);
+  
+        local monitoringRule = policyRule.new() +
+                               policyRule.withApiGroups(['monitoring.coreos.com']) +
+                               policyRule.withResources([
+                                 'alertmanagers',
+                                 'alertmanagers/finalizers',
+                                 'prometheuses',
+                                 'prometheuses/finalizers',
+                                 'thanosrulers',
+                                 'thanosrulers/finalizers',
+                                 'servicemonitors',
+                                 'podmonitors',
+                                 'prometheusrules',
+                               ]) +
+                               policyRule.withVerbs(['*']);
+  
+        local appsRule = policyRule.new() +
+                         policyRule.withApiGroups(['apps']) +
+                         policyRule.withResources([
+                           'statefulsets',
+                         ]) +
+                         policyRule.withVerbs(['*']);
+  
+        local coreRule = policyRule.new() +
+                         policyRule.withApiGroups(['']) +
+                         policyRule.withResources([
+                           'configmaps',
+                           'secrets',
+                         ]) +
+                         policyRule.withVerbs(['*']);
+  
+        local podRule = policyRule.new() +
+                        policyRule.withApiGroups(['']) +
+                        policyRule.withResources([
+                          'pods',
+                        ]) +
+                        policyRule.withVerbs(['list', 'delete']);
+  
+        local routingRule = policyRule.new() +
+                            policyRule.withApiGroups(['']) +
+                            policyRule.withResources([
+                              'services',
+                              'services/finalizers',
+                              'endpoints',
+                            ]) +
+                            policyRule.withVerbs(['get', 'create', 'update', 'delete']);
+  
+        local nodeRule = policyRule.new() +
+                         policyRule.withApiGroups(['']) +
+                         policyRule.withResources([
+                           'nodes',
+                         ]) +
+                         policyRule.withVerbs(['list', 'watch']);
+  
+        local namespaceRule = policyRule.new() +
+                              policyRule.withApiGroups(['']) +
+                              policyRule.withResources([
+                                'namespaces',
+                              ]) +
+                              policyRule.withVerbs(['get', 'list', 'watch']);
+   
+        local tokenreviewsRule = policyRule.new() +
+                              policyRule.withApiGroups(['authentication.k8s.io']) +
+                              policyRule.withResources([
+                                'tokenreviews',
+                              ]) +
+                              policyRule.withVerbs(['create']); 
+                      
+        local subjectaccessreviewsRule = policyRule.new() +
+                              policyRule.withApiGroups(['authorization.k8s.io']) +
+                              policyRule.withResources([
+                                'subjectaccessreviews',
+                              ]) +
+                              policyRule.withVerbs(['create']); 
+
+        local rules = [crdCreateRule, crdMonitoringRule, monitoringRule, appsRule, coreRule, podRule, routingRule, nodeRule, namespaceRule, tokenreviewsRule, subjectaccessreviewsRule];
+        clusterRole.new() +
+        clusterRole.mixin.metadata.withLabels(self.commonLabels) +
+        clusterRole.mixin.metadata.withName($._config.prometheusOperator.name) +
+        clusterRole.withRules(rules),
+  
       clusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
   
         clusterRoleBinding.new() +
         clusterRoleBinding.mixin.metadata.withLabels($._config.prometheusOperator.commonLabels) +
-        clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + $._config.prometheusOperator.name) +
+        clusterRoleBinding.mixin.metadata.withName($._config.prometheusOperator.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
         clusterRoleBinding.mixin.roleRef.withName($._config.prometheusOperator.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
@@ -460,7 +712,7 @@ local kp =
         local rules = [nodeMetricsRule, metricsRule];
   
         clusterRole.new() +
-        clusterRole.mixin.metadata.withName('prometheus-' + self.name) +
+        clusterRole.mixin.metadata.withName($._config.namePrefix + 'prometheus-' + self.name) +
         clusterRole.withRules(rules),
       clusterRoleBinding:
         local clusterRoleBinding = k.rbac.v1.clusterRoleBinding;
@@ -468,7 +720,7 @@ local kp =
         clusterRoleBinding.new() +
         clusterRoleBinding.mixin.metadata.withName($._config.namePrefix + 'prometheus-' + self.name) +
         clusterRoleBinding.mixin.roleRef.withApiGroup('rbac.authorization.k8s.io') +
-        clusterRoleBinding.mixin.roleRef.withName('prometheus-' + self.name) +
+        clusterRoleBinding.mixin.roleRef.withName($._config.namePrefix + 'prometheus-' + self.name) +
         clusterRoleBinding.mixin.roleRef.mixinInstance({ kind: 'ClusterRole' }) +
         clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'prometheus-' + $._config.prometheus.name, namespace: $._config.namespace }]),
       prometheus+:

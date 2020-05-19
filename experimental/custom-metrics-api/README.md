@@ -20,7 +20,7 @@ A tool like [hey](https://github.com/rakyll/hey) is helpful for doing so:
 kubectl run --rm utils -it --generator=run-pod/v1 --image arunvelsriram/utils bash
 wget https://storage.googleapis.com/hey-release/hey_linux_amd64
 mv hey_linux_amd64 hey && chmod +x hey
-
+./hey -c 20 -n 100000000 http://sample-app.default.svc:8080/metrics
 ```
 
 - Observe the replica changes of the sample deployment:

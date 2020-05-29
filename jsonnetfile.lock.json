@@ -89,7 +89,8 @@
           "subdir": ""
         }
       },
-      "version": "638d7a26ea8cae9a2d01d1e48ad1f839706c9aa7"
+      "version": "638d7a26ea8cae9a2d01d1e48ad1f839706c9aa7",
+      "sum": "xHCDvHuJQkK9jqzgtBHBURhXOMc20LauXL+vYfUmMhY="
     },
     {
       "source": {
@@ -98,7 +99,8 @@
           "subdir": "lib/promgrafonnet"
         }
       },
-      "version": "638d7a26ea8cae9a2d01d1e48ad1f839706c9aa7"
+      "version": "638d7a26ea8cae9a2d01d1e48ad1f839706c9aa7",
+      "sum": "VhgBM39yv0f4bKv8VfGg4FXkg573evGDRalip9ypKbc="
     },
     {
       "source": {

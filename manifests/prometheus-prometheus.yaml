@@ -35,7 +35,7 @@ spec:
     - name: alertmanager-main
       namespace: kubesphere-monitoring-system
       port: web
-  image: kubesphere/prometheus:v2.17.2
+  image: kubesphere/prometheus:v2.19.0
   nodeSelector:
     kubernetes.io/os: linux
   podMonitorNamespaceSelector: {}
@@ -72,4 +72,4 @@ spec:
     key: dedicated
     operator: Equal
     value: monitoring
-  version: v2.17.2
+  version: v2.19.0

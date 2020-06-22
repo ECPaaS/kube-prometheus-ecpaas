@@ -16,15 +16,15 @@ local kp =
       kubeletSelector: 'job="kubelet"',
 
       versions+:: {
-        prometheus: "v2.19.0",
+        prometheus: "v2.19.1",
         alertmanager: "v0.21.0",
         kubeStateMetrics: "1.9.6",
         kubeRbacProxy: "v0.4.1",
         addonResizer: "1.8.4",
         nodeExporter: "ks-v0.18.1", 
-        prometheusOperator: 'v0.38.1',
+        prometheusOperator: 'v0.38.2',
         configmapReloader: 'v0.3.0',
-        prometheusConfigReloader: 'v0.38.1',
+        prometheusConfigReloader: 'v0.38.2',
         prometheusAdapter: 'v0.6.0',
         thanos: "v0.10.0",
         clusterVerticalAutoscaler: "1.0.0"

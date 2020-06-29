@@ -14,16 +14,6 @@
     {
       "source": {
         "git": {
-          "remote": "https://github.com/coreos/prometheus-operator",
-          "subdir": "jsonnet/prometheus-operator"
-        }
-      },
-      "version": "00cbd4911f931380cf9e19d771d7ebae1ec0a807",
-      "sum": "PfB8G2nfy3e/BrXS1ayymsRRFJvQLWT+oY5aqLS0tE8="
-    },
-    {
-      "source": {
-        "git": {
           "remote": "https://github.com/grafana/grafonnet-lib",
           "subdir": "grafonnet"
         }
@@ -111,6 +101,16 @@
       },
       "version": "e69448c63dd1baceb8089422faed1a5c8e0c2a79",
       "sum": "GY5WL5ouPdmz0x/+mWfa1BPmTvkpKjQ7fC124zxQuKc="
+    },
+    {
+      "source": {
+        "git": {
+          "remote": "https://github.com/kubesphere/prometheus-operator",
+          "subdir": "jsonnet/prometheus-operator"
+        }
+      },
+      "version": "743d49bb3c96bd9e43854a865b8b2bdaece49caf",
+      "sum": "5cvAf/PsF3x/+TTJ89MQWSmFKAIyekcDfLzz9ZaXrnk="
     },
     {
       "source": {

@@ -93,8 +93,70 @@ local kp =
             },
             equal: ['namespace', 'alertname'],
           }],
+          receivers+: [
+            {
+              name: 'prometheus',
+              webhook_configs: [
+                {
+                  url: 'http://notification-manager-svc.kubesphere-monitoring-system.svc:19093/api/v2/alerts',
+                },
+              ]
+            },
+            {
+              name: 'event',
+              webhook_configs: [
+                {
+                  url: 'http://notification-manager-svc.kubesphere-monitoring-system.svc:19093/api/v2/alerts',
+                  send_resolved: false,
+                },
+              ]
+            },
+            {
+              name: 'auditing',
+              webhook_configs: [
+                {
+                  url: 'http://notification-manager-svc.kubesphere-monitoring-system.svc:19093/api/v2/alerts',
+                  send_resolved: false,
+                },
+              ]
+            },
+          ],
           route+: {
             group_by: ['namespace', 'alertname'],
+            routes: [
+              {
+                receiver: 'Watchdog',
+                match: {
+                  alertname: 'Watchdog',
+                },
+              },
+              {
+                receiver: 'Critical',
+                match: {
+                  severity: 'critical',
+                },
+              },
+              {
+                receiver: 'prometheus',
+                match: {
+                  alerttype: '',
+                },
+              },
+              {
+                receiver: 'event',
+                match: {
+                  alerttype: 'event',
+                },
+                group_interval: '30s',
+              },
+              {
+                receiver: 'auditing',
+                match: {
+                  alerttype: 'auditing',
+                },
+                group_interval: '30s',
+              },
+            ],
           },
         },
       },

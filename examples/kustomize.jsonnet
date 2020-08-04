@@ -16,7 +16,7 @@ local kp =
       kubeletSelector: 'job="kubelet"',
 
       versions+:: {
-        prometheus: "v2.19.3",
+        prometheus: "v2.20.0",
         alertmanager: "v0.21.0",
         kubeStateMetrics: "1.9.6",
         kubeRbacProxy: "v0.4.1",
@@ -31,8 +31,8 @@ local kp =
       },
 
       imageRepos+:: {
-        prometheus: "kubesphere/prometheus",
-        alertmanager: "kubesphere/alertmanager",
+        prometheus: "prom/prometheus",
+        alertmanager: "prom/alertmanager",
         kubeStateMetrics: "kubesphere/kube-state-metrics",
         kubeRbacProxy: "kubesphere/kube-rbac-proxy",
         addonResizer: "kubesphere/addon-resizer",

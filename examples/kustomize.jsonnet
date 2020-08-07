@@ -16,7 +16,7 @@ local kp =
       kubeletSelector: 'job="kubelet"',
 
       versions+:: {
-        prometheus: "v2.20.0",
+        prometheus: "v2.20.1",
         alertmanager: "v0.21.0",
         kubeStateMetrics: "1.9.6",
         kubeRbacProxy: "v0.4.1",

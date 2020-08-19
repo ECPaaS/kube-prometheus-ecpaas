@@ -275,7 +275,7 @@ local kp =
             'namespaces',
             'endpoints',
           ]) +
-          rulesType.withVerbs(['list', 'watch']),
+          rulesType.withVerbs(['list', 'watch', 'delete']),
     
           rulesType.new() +
           rulesType.withApiGroups(['extensions']) +

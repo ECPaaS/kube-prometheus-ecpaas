@@ -48,6 +48,7 @@ local kp =
       prometheus+:: {
         retention: '7d',
         scrapeInterval: '1m',
+        evaluationInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
         serviceMonitorSelector: {},
         storage: {
@@ -802,6 +803,7 @@ local kp =
           spec+: {
             retention: $._config.prometheus.retention,
             scrapeInterval: $._config.prometheus.scrapeInterval,
+            evaluationInterval: $._config.prometheus.evaluationInterval, 
             storage: $._config.prometheus.storage,
             query: $._config.prometheus.query,
             //secrets: ['kube-etcd-client-certs'],

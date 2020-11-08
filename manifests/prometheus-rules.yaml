@@ -506,6 +506,9 @@ spec:
   - name: node.rules
     rules:
     - expr: |
+        sum (node_cpu_seconds_total{job="node-exporter", mode=~"user|nice|system|iowait|irq|softirq|steal"}) by (cpu, instance, job, namespace, pod)
+      record: node_cpu_used_seconds_total
+    - expr: |
         max(kube_pod_info{job="kube-state-metrics"} * on(node) group_left(role) kube_node_role{job="kube-state-metrics", role="master"} or on(pod, namespace) kube_pod_info{job="kube-state-metrics"}) by (node, namespace, host_ip, role, pod)
       record: 'node_namespace_pod:kube_pod_info:'
     - expr: |
@@ -516,11 +519,11 @@ spec:
         ))
       record: node:node_num_cpu:sum
     - expr: |
-        avg(irate(node_cpu_seconds_total{job="node-exporter",mode="used"}[5m]))
+        avg(irate(node_cpu_used_seconds_total{job="node-exporter"}[5m]))
       record: :node_cpu_utilisation:avg1m
     - expr: |
         avg by (node, host_ip, role) (
-          irate(node_cpu_seconds_total{job="node-exporter",mode="used"}[5m])
+          irate(node_cpu_used_seconds_total{job="node-exporter"}[5m])
         * on (namespace, pod) group_left(node, host_ip, role)
           node_namespace_pod:kube_pod_info:)
       record: node:node_cpu_utilisation:avg1m

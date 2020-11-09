@@ -50,7 +50,9 @@ local kp =
         scrapeInterval: '1m',
         evaluationInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
-        serviceMonitorSelector: {},
+        serviceMonitorSelector: {
+          vendor: 'kubesphere',
+        },
         storage: {
           volumeClaimTemplate: {
             spec: {
@@ -231,6 +233,11 @@ local kp =
     alertmanager+:: {
       serviceMonitor+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -379,6 +386,11 @@ local kp =
 
       serviceMonitor+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+:{
             endpoints: [
               {
@@ -424,6 +436,11 @@ local kp =
     grafana+:: {
       serviceMonitor+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -470,6 +487,11 @@ local kp =
         clusterRoleBinding.withSubjects([{ kind: 'ServiceAccount', name: 'node-exporter', namespace: $._config.namespace }]),
       serviceMonitor+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -507,6 +529,14 @@ local kp =
     }, 
 
     prometheusOperator+:: {
+      serviceMonitor+:
+        {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
+        },
       clusterRole:
         local clusterRole = k.rbac.v1.clusterRole;
         local policyRule = clusterRole.rulesType;
@@ -821,6 +851,11 @@ local kp =
         },
       serviceMonitor+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -840,6 +875,9 @@ local kp =
         {
           metadata+: {
             namespace: 'kubesphere-monitoring-system',
+            labels+: {
+              vendor: 'kubesphere',
+            }
           },
           spec+: {
             endpoints: [
@@ -870,6 +908,11 @@ local kp =
 //        },
       serviceMonitorKubeScheduler+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
            endpoints: [
               {
@@ -888,6 +931,11 @@ local kp =
         },
       serviceMonitorKubelet+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -943,6 +991,11 @@ local kp =
         },
       serviceMonitorKubeControllerManager+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -961,6 +1014,11 @@ local kp =
         },
       serviceMonitorApiserver+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -995,6 +1053,11 @@ local kp =
         },
       serviceMonitorCoreDNS+:
         {
+          metadata+: {
+            labels+: {
+              vendor: 'kubesphere',
+            },
+          },
           spec+: {
             endpoints: [
               {
@@ -1014,6 +1077,7 @@ local kp =
             namespace: $._config.namespace,
             labels: {
               'k8s-app': 's2i-operator',
+              vendor: 'kubesphere',
             },
           },
           spec: {

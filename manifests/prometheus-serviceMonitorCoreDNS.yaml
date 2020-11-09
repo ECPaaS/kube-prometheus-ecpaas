@@ -2,6 +2,7 @@ apiVersion: monitoring.coreos.com/v1
 kind: ServiceMonitor
 metadata:
   labels:
+    app.kubernetes.io/vendor: kubesphere
     k8s-app: coredns
   name: coredns
   namespace: kubesphere-monitoring-system

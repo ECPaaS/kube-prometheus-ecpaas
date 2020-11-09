@@ -3,6 +3,7 @@ kind: ServiceMonitor
 metadata:
   labels:
     app.kubernetes.io/name: node-exporter
+    app.kubernetes.io/vendor: kubesphere
     app.kubernetes.io/version: v0.18.1
   name: node-exporter
   namespace: kubesphere-monitoring-system

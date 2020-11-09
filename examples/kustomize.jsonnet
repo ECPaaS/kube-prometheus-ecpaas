@@ -51,7 +51,7 @@ local kp =
         evaluationInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
         serviceMonitorSelector: {
-          vendor: 'kubesphere',
+          'app.kubernetes.io/vendor': 'kubesphere',
         },
         storage: {
           volumeClaimTemplate: {
@@ -235,7 +235,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -388,7 +388,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+:{
@@ -438,7 +438,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -489,7 +489,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -533,7 +533,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
         },
@@ -853,7 +853,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -876,7 +876,7 @@ local kp =
           metadata+: {
             namespace: 'kubesphere-monitoring-system',
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             }
           },
           spec+: {
@@ -910,7 +910,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -933,7 +933,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -993,7 +993,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -1016,7 +1016,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -1055,7 +1055,7 @@ local kp =
         {
           metadata+: {
             labels+: {
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec+: {
@@ -1077,7 +1077,7 @@ local kp =
             namespace: $._config.namespace,
             labels: {
               'k8s-app': 's2i-operator',
-              vendor: 'kubesphere',
+              'app.kubernetes.io/vendor': 'kubesphere',
             },
           },
           spec: {

@@ -25,6 +25,7 @@ generate: manifests **.md
 	cp ./additional-scrape-configs.yaml ./manifests/
 	rm -rf manifests/prometheus-role*Namespaces.yaml
 	rm -rf manifests/grafana-serviceMonitor.yaml
+	cp -rf ./manifests/*.yaml ./kustomize/
 
 **.md: $(EMBEDMD_BIN) $(shell find examples) build.sh example.jsonnet
 	$(EMBEDMD_BIN) -w `find . -name "*.md" | grep -v vendor`

@@ -24,6 +24,7 @@ clean:
 generate: manifests **.md
 	cp ./additional-scrape-configs.yaml ./manifests/
 	rm -rf manifests/prometheus-role*Namespaces.yaml
+	rm -rf manifests/prometheus-adapter*.yaml
 	rm -rf manifests/grafana-serviceMonitor.yaml
 	cp -rf ./manifests/*.yaml ./kustomize/
 

@@ -23,7 +23,7 @@ local matchExpression = affinity.mixin.podAffinityTerm.labelSelector.matchExpres
     },
   },
 
-  alertmanager+:: {
+  alertmanager+: {
     alertmanager+: {
       spec+:
         antiaffinity('alertmanager', [$._config.alertmanager.name], $._config.namespace),
@@ -32,10 +32,17 @@ local matchExpression = affinity.mixin.podAffinityTerm.labelSelector.matchExpres
 
   prometheus+: {
     local p = self,
-
     prometheus+: {
       spec+:
         antiaffinity('prometheus', [p.name], p.namespace),
+    },
+  },
+
+  thanos+: {
+    local t = self,
+    ruler+: {
+      spec+:
+        antiaffinity('thanos-ruler', [t.name], t.namespace),
     },
   },
 }

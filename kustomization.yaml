@@ -77,3 +77,4 @@ resources:
 - ./manifests/setup/prometheus-operator-deployment.yaml
 - ./manifests/setup/prometheus-operator-service.yaml
 - ./manifests/setup/prometheus-operator-serviceAccount.yaml
+- ./manifests/thanos-ruler.yaml

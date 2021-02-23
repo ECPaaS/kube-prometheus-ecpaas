@@ -2,7 +2,6 @@ local k = import 'ksonnet/ksonnet.beta.4/k.libsonnet';
 local kp =
   (import 'kube-prometheus/kube-prometheus.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-static-etcd.libsonnet') +
-//(import 'kube-prometheus/ksm-autoscaler/ksm-autoscaler.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-strip-limits.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-anti-affinity.libsonnet') +
   (import 'kube-prometheus/kube-prometheus-node-affinity.libsonnet') +
@@ -15,6 +14,7 @@ local kp =
       cadvisorSelector: 'job="kubelet"',
       kubeletSelector: 'job="kubelet"',
 
+
       versions+:: {
         prometheus: "v2.20.1",
         alertmanager: "v0.21.0",
@@ -26,7 +26,7 @@ local kp =
         configmapReloader: 'v0.3.0',
         prometheusConfigReloader: 'v0.38.3',
         prometheusAdapter: 'v0.6.0',
-        thanos: "v0.10.0",
+        thanos: "v0.18.0",
         clusterVerticalAutoscaler: "1.0.0"
       },
 
@@ -41,7 +41,7 @@ local kp =
         configmapReloader: 'jimmidyson/configmap-reload',
         prometheusConfigReloader: 'kubesphere/prometheus-config-reloader',
         prometheusAdapter: 'kubesphere/k8s-prometheus-adapter-amd64',
-        thanos: 'kubesphere/thanos',
+        thanos: 'thanosio/thanos',
         clusterVerticalAutoscaler: 'gcr.io/google_containers/cluster-proportional-vertical-autoscaler-amd64'
       },
 
@@ -1127,7 +1127,7 @@ local kp =
             groups: $._config.etcd.rules.groups,
           },
         },
-      }, 
+    }, 
   };
 
 local manifests =
@@ -1144,6 +1144,7 @@ local manifests =
   { ['kube-state-metrics-' + name]: kp.kubeStateMetrics[name] for name in std.objectFields(kp.kubeStateMetrics) } +
   { ['alertmanager-' + name]: kp.alertmanager[name] for name in std.objectFields(kp.alertmanager) } +
   { ['prometheus-' + name]: kp.prometheus[name] for name in std.objectFields(kp.prometheus) } +
+  { ['thanos-' + name]: kp.thanos[name] for name in std.objectFields(kp.thanos) } +
   { ['prometheus-adapter-' + name]: kp.prometheusAdapter[name] for name in std.objectFields(kp.prometheusAdapter) } +
   { ['grafana-' + name]: kp.grafana[name] for name in std.objectFields(kp.grafana) };
 

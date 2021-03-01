@@ -50,11 +50,7 @@ local kp =
         scrapeInterval: '1m',
         evaluationInterval: '1m',
         namespaces: ['default', 'kube-system', 'kubesphere-devops-system', 'istio-system', $._config.namespace],
-        serviceMonitorSelector: {
-          matchLabels: {
-            'app.kubernetes.io/vendor': 'kubesphere',
-          }
-        },
+        serviceMonitorSelector: {},
         storage: {
           volumeClaimTemplate: {
             spec: {

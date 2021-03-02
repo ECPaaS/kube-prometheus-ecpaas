@@ -7,6 +7,13 @@ metadata:
   name: node-exporter
   namespace: kubesphere-monitoring-system
 spec:
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+        - matchExpressions:
+          - key: node-role.kubernetes.io/edge
+            operator: DoesNotExist
   selector:
     matchLabels:
       app.kubernetes.io/name: node-exporter

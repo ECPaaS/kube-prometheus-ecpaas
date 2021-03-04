@@ -16,7 +16,7 @@ local kp =
 
 
       versions+:: {
-        prometheus: "v2.20.1",
+        prometheus: "v2.25.0",
         alertmanager: "v0.21.0",
         kubeStateMetrics: "1.9.6",
         kubeRbacProxy: "v0.4.1",

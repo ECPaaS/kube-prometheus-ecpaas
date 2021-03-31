@@ -94,7 +94,10 @@ local kp =
             },
             equal: ['namespace', 'alertname'],
           }],
-          receivers+: [
+          receivers: [
+            {
+              name: 'Watchdog',
+            },
             {
               name: 'prometheus',
               webhook_configs: [
@@ -132,18 +135,6 @@ local kp =
                 },
               },
               {
-                receiver: 'Critical',
-                match: {
-                  severity: 'critical',
-                },
-              },
-              {
-                receiver: 'prometheus',
-                match: {
-                  alerttype: '',
-                },
-              },
-              {
                 receiver: 'event',
                 match: {
                   alerttype: 'event',
@@ -157,6 +148,13 @@ local kp =
                 },
                 group_interval: '30s',
               },
+              {
+                receiver: 'prometheus',
+                match: {
+                  alerttype: '.*',
+                },
+              },
+ 
             ],
           },
         },

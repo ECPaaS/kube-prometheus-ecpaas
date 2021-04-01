@@ -755,7 +755,7 @@ local kp =
         local service = k.core.v1.service;
         local servicePort = k.core.v1.service.mixin.spec.portsType;
   
-        local kubeSchedulerServicePort = servicePort.newNamed('http-metrics', 10251, 10251);
+        local kubeSchedulerServicePort = servicePort.newNamed('https-metrics', 10259, 10259);
   
         service.new('kube-scheduler-svc', null, kubeSchedulerServicePort) +
         service.mixin.metadata.withNamespace('kube-system') +
@@ -766,7 +766,7 @@ local kp =
         local service = k.core.v1.service;
         local servicePort = k.core.v1.service.mixin.spec.portsType;
   
-        local kubeControllerManagerServicePort = servicePort.newNamed('http-metrics', 10252, 10252);
+        local kubeControllerManagerServicePort = servicePort.newNamed('https-metrics', 10257, 10257);
   
         service.new('kube-controller-manager-svc', null, kubeControllerManagerServicePort) +
         service.mixin.metadata.withNamespace('kube-system') +
@@ -912,7 +912,12 @@ local kp =
           spec+: {
            endpoints: [
               {
-                port: 'http-metrics',
+                bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+                scheme: 'https',
+                tlsConfig: {
+                  insecureSkipVerify: true,
+                },
+                port: 'https-metrics',
                 interval: '1m',
                 metricRelabelings: [
                   {
@@ -995,7 +1000,12 @@ local kp =
           spec+: {
             endpoints: [
               {
-                port: 'http-metrics',
+                bearerTokenFile: '/var/run/secrets/kubernetes.io/serviceaccount/token',
+                scheme: 'https',
+                tlsConfig: {
+                  insecureSkipVerify: true,
+                },
+                port: 'https-metrics',
                 interval: '1m',
                 metricRelabelings: [
                   {

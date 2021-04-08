@@ -126,7 +126,7 @@ local kp =
             },
           ],
           route+: {
-            group_by: ['namespace', 'alertname'],
+            group_by: ['namespace', 'alertname', 'rule_id'],
             routes: [
               {
                 receiver: 'Watchdog',

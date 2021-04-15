@@ -109,7 +109,8 @@
           "subdir": "jsonnet/prometheus-operator"
         }
       },
-      "version": "a1eb8fd04f3cd2bfb11aee8943e0b3469ff2f199"
+      "version": "a1eb8fd04f3cd2bfb11aee8943e0b3469ff2f199",
+      "sum": "nM1eDP5vftqAeQSmVYzSBAh+lG0SN6zu46QiocQiVhk="
     },
     {
       "source": {

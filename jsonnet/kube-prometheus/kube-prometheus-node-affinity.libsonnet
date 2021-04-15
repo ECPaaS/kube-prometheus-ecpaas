@@ -23,16 +23,20 @@ local nodeAffinityRequired = k.apps.v1.daemonSet.mixin.spec.template.spec.affini
   },
 
   local affinityRequired(key, operator) = {
-    affinity+: {
-      nodeAffinity: {
-        requiredDuringSchedulingIgnoredDuringExecution: {
-          nodeSelectorTerms: [
-            nodeAffinityRequired.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTermsType.withMatchExpressions([
-              matchExpression.new() +
-              matchExpression.withKey(key) +
-              matchExpression.withOperator(operator),
-            ]),
-          ],
+    template+: {
+      spec+:{
+        affinity+: {
+          nodeAffinity: {
+            requiredDuringSchedulingIgnoredDuringExecution: {
+              nodeSelectorTerms: [
+                nodeAffinityRequired.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTermsType.withMatchExpressions([
+                  matchExpression.new() +
+                  matchExpression.withKey(key) +
+                  matchExpression.withOperator(operator),
+                ]),
+              ],
+            },
+          },
         },
       },
     },

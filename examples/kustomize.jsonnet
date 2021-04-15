@@ -96,6 +96,9 @@ local kp =
           }],
           receivers: [
             {
+              name: 'Default',
+            },
+            {
               name: 'Watchdog',
             },
             {
@@ -150,11 +153,10 @@ local kp =
               },
               {
                 receiver: 'prometheus',
-                match: {
+                match_re: {
                   alerttype: '.*',
                 },
               },
- 
             ],
           },
         },

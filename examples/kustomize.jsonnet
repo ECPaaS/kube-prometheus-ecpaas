@@ -22,9 +22,9 @@ local kp =
         kubeRbacProxy: "v0.4.1",
         addonResizer: "1.8.4",
         nodeExporter: "v0.18.1", 
-        prometheusOperator: 'v0.38.3',
+        prometheusOperator: 'v0.42.1',
         configmapReloader: 'v0.3.0',
-        prometheusConfigReloader: 'v0.38.3',
+        prometheusConfigReloader: 'v0.42.1',
         prometheusAdapter: 'v0.6.0',
         thanos: "v0.18.0",
         clusterVerticalAutoscaler: "1.0.0"

@@ -558,6 +558,7 @@ local kp =
                                     'prometheusrules.monitoring.coreos.com',
                                     'servicemonitors.monitoring.coreos.com',
                                     'thanosrulers.monitoring.coreos.com',
+                                    'probes.monitoring.coreos.com',
                                   ]) +
                                   policyRule.withVerbs(['get', 'update']);
   
@@ -573,6 +574,7 @@ local kp =
                                  'servicemonitors',
                                  'podmonitors',
                                  'prometheusrules',
+                                 'probes',
                                ]) +
                                policyRule.withVerbs(['*']);
   

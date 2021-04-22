@@ -36,7 +36,7 @@ spec:
       namespace: kubesphere-monitoring-system
       port: web
   evaluationInterval: 1m
-  image: prom/prometheus:v2.25.0
+  image: prom/prometheus:v2.26.0
   nodeSelector:
     kubernetes.io/os: linux
   podMonitorNamespaceSelector: {}
@@ -73,4 +73,4 @@ spec:
     key: dedicated
     operator: Equal
     value: monitoring
-  version: v2.25.0
+  version: v2.26.0

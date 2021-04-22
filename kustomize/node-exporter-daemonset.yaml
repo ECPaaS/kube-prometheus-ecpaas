@@ -61,7 +61,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: kubesphere/kube-rbac-proxy:v0.4.1
+        image: kubesphere/kube-rbac-proxy:v0.8.0
         name: kube-rbac-proxy
         ports:
         - containerPort: 9100
@@ -72,6 +72,10 @@ spec:
           requests:
             cpu: 10m
             memory: 20Mi
+        securityContext:
+          runAsGroup: 65532
+          runAsNonRoot: true
+          runAsUser: 65532
       hostNetwork: true
       hostPID: true
       nodeSelector:
